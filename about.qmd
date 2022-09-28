@@ -16,4 +16,4 @@ about:
 
 ---
 
-Bienvenido a mi sitio donde publicaré articulos de Deep Learning, Privacidad, Libros y poco más! 
+About this blog

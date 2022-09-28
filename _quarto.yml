@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "lzeladam"
+  title: "lzeladamv2"
   navbar:
     right:
       - about.qmd
