@@ -11,14 +11,35 @@
     "href": "index.html",
     "title": "Alexander Zelada",
     "section": "",
-    "text": "news\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nSep 28, 2022\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nDeepLearning\n\n\nInteligenciaArtificial\n\n\n\n\n\n\n\n\n\n\n\nAug 16, 2020\n\n\nAlexander Zelada\n\n\n\n\n\n\nNo matching items"
+    "text": "DeepLearning\n\n\nBooks\n\n\nEthicalAI\n\n\n\n\n\n\n\n\n\n\n\nJan 15, 2021\n\n\nAlexander Zelada\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nDeepLearning\n\n\nInteligenciaArtificial\n\n\n\n\n\n\n\n\n\n\n\nAug 16, 2020\n\n\nAlexander Zelada\n\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
+    "objectID": "posts/libros-de-inteligencia-artificial/index.html",
+    "href": "posts/libros-de-inteligencia-artificial/index.html",
+    "title": "Libros de Inteligencia Artificial para el 2021",
     "section": "",
-    "text": "This is a post with executable code."
+    "text": "Los primeros días del 2021 lo he invertido en revisar los libros que quisiera leer durante el resto del año, los temas que seleccioné tienen correlación con mi plan de estudios y mi genero de literatura favorito:\nEl listado no tiene un orden de lectura. Quiero que sea una publicación viva, es decir que iré actualizándola con reseñas y más títulos; es de esperar que la gran mayoría de estos libros se encuentren en inglés (motivo para salir de mi zona de confort), pero por suerte también he agregado un link a los ya tienen una edición en español."
+  },
+  {
+    "objectID": "posts/libros-de-inteligencia-artificial/index.html#libros-de-divulgación",
+    "href": "posts/libros-de-inteligencia-artificial/index.html#libros-de-divulgación",
+    "title": "Libros de Inteligencia Artificial para el 2021",
+    "section": "Libros de divulgación",
+    "text": "Libros de divulgación\n\nEl enemigo conoce el sistema: Manipulación de ideas, personas e influencias después de la economía de la atención\nArtifical Intelligence: A Guide for Thinking Humans\nGodel, Escher, Bach: An Eternal Golden Braid y en español se titula: Gödel, Escher, Bach: Un eterno y grácil bucle\nInvisible Women: Exposing Data Bias in a World Designed for Men y en español se titula: La mujer invisible: Descubre cómo los datos configuran un mundo hecho por y para los hombres\nThe Ethical Algorithm: The Science of Socially Aware Algorithm Design y en español se titula: El algoritmo Ético. La Ciencia Del Diseño de algoritmos socialmente responsables\nThe Overstory: A Novel y en español se titula: El clamor de los bosques\nApollo 13\nCaptivating Technology: Race, Carceral Technoscience, and Liberatory Imagination in Everyday Life\nRace After Technology: Abolitionist Tools for the New Jim Code\nWhen Breath Becomes Air y en español se titula: Recuerda que vas a morir. Vive (Los Tres Mundos)\nSupersizing the Mind: Embodiment, Action, and Cognitive Extension (Philosophy of Mind)\nThe Beginning of Infinity: Explanations That Transform the world\nOther Minds: The Octopus, the Sea, and the Deep Origins of Consciousness y en español se titula: Otras mentes. El pulpo, el mar y los origenes profundos de la consciencia\nNeural-Symbolic Cognitive Reasoning (Cognitive Technologies)\nSuperintelligence: Paths, Dangers, Strategies y en español se titula: Superinteligencia: Caminos, peligros, estrategias\nHuman + Machine: Reimagining Work in the Age of AI\nHow to Create a Mind: The Secret of Human Thought Revealed y en español se titula: Cómo crear una mente\nThe Singularity Is Near: When Humans Transcend Biology y en español se titula: La Singularidad está cerca\nThe Sentient Machine: The Coming Age of Artificial Intelligence\nThe Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies\nThe Simulation Hypothesis: An MIT Computer Scientist Shows Why AI, Quantum Physics and Eastern Mystics All Agree We Are In a Video Game\nPrivacy is Power Why and How You Should Take Back Control of Your Data\nWhat Do We Know and What Should We Do About Internet Privacy?\nPrivacy in Context: Technology, Policy, and the Integrity of Social Life\nPrivacy: A Short History\nThe Age of Surveillance Capitalism. The Fight for a Human Future at the New Frontier of Power y en español se titula: La era del capitalismo de la vigilancia: La lucha por un futuro humano frente a las nuevas fronteras del poder (Estado y Sociedad)\nT-Minus AI: Humanity’s Countdown to Artificial Intelligence and the New Pursuit of Global Power\nThinking, Fast & Slow y en español se titula: Pensar rápido, pensar despacio (Psicología)"
+  },
+  {
+    "objectID": "posts/libros-de-inteligencia-artificial/index.html#libros-de-ficción",
+    "href": "posts/libros-de-inteligencia-artificial/index.html#libros-de-ficción",
+    "title": "Libros de Inteligencia Artificial para el 2021",
+    "section": "Libros de ficción",
+    "text": "Libros de ficción\n\nZed\nArtificial Condition: The Murderbot Diaries y en español se titula: Condición artificial: Los diarios de Matabot (Alethé)"
+  },
+  {
+    "objectID": "posts/libros-de-inteligencia-artificial/index.html#libros-de-consulta",
+    "href": "posts/libros-de-inteligencia-artificial/index.html#libros-de-consulta",
+    "title": "Libros de Inteligencia Artificial para el 2021",
+    "section": "Libros de consulta",
+    "text": "Libros de consulta\n\nDeep Learning (Adaptive Computation and Machine Learning series)\nUnderstanding Machine Learning: From Theory to Algorithms\nIntro to Statistical Learning, with Applications in R\nThe Elements of Statistical Learning: Data Mining, Inference, and Prediction\nComputer Age Statistical Inference: Algorithms, Evidence, and Data Science\nReinforcement Learning: An Introduction (Adaptive Computation and Machine Learning series)\nAlgorithms for Data and Computation Privacy\n\nPara este post tomé como referencias a las siguientes fuentes :\n\nHAI Recommended Reading: 10 Books Worth Checking Out\nOur Privacy Opportunity course by OpenMined"
   },
   {
     "objectID": "posts/welcome/index.html",

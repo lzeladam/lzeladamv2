@@ -1,0 +1,73 @@
+---
+title: "Libros de Inteligencia Artificial para el 2021"
+author: "Alexander Zelada"
+date: "2021-01-15"
+categories: [DeepLearning, Books, EthicalAI]
+image: "book.png"
+---
+
+Los primeros días del 2021 lo he invertido en revisar los libros que quisiera leer durante el resto del año, los temas que seleccioné tienen correlación con mi plan de estudios y mi genero de literatura favorito:
+
+- Ética y Sesgos AI
+- Privacidad AI
+- Conciencia y Pensamiento
+- Sociedad de la Información
+- Fundamentos Matemáticos y Estadística para Deep Learning
+- Ciencia Ficción
+
+El listado no tiene un orden de lectura. Quiero que sea una publicación viva, es decir que iré actualizándola con reseñas y más títulos; es de esperar que la gran mayoría de estos libros se encuentren en inglés (motivo para salir de mi zona de confort), pero por suerte también he agregado un link a los ya tienen una edición en español.
+
+
+## Libros de divulgación
+
+1. [El enemigo conoce el sistema: Manipulación de ideas, personas e influencias después de la economía de la atención](https://www.amazon.com/-/es/Marta-Peirano-ebook/dp/B07QMB2W7G/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=El+enemigo+conoce+el+sistema%3A+Manipulaci%C3%B3n+de+ideas%2C+personas+e+influencias+despu%C3%A9s+de+la+econom%C3%ADa+de+la+atenci%C3%B3n&qid=1610451857&s=digital-text&sr=1-1)
+2. [Artifical Intelligence: A Guide for Thinking Humans](https://www.amazon.com/-/es/Melanie-Mitchell-ebook/dp/B07MYWPQSK/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=artificial+intelligence%3A+a+guide+for+thinking+humans&qid=1610451880&s=digital-text&sr=1-1)
+3. [Godel, Escher, Bach: An Eternal Golden Braid](https://www.amazon.com/-/es/Douglas-R-Hofstadter/dp/B01BITL2WG/ref=sr_1_3?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Godel%2C+Escher%2C+Bach%3A+An+Eternal+Golden+Braid&qid=1610451898&s=digital-text&sr=1-3-catcorr) y en español se titula: [Gödel, Escher, Bach: Un eterno y grácil bucle](https://www.amazon.com/s?k=G%C3%B6del%2C+Escher%2C+Bach%3A+Un+eterno+y+gr%C3%A1cil+bucle&i=digital-text&__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&ref=nb_sb_noss)
+4. [Invisible Women: Exposing Data Bias in a World Designed for Men](https://www.amazon.com/-/es/Caroline-Criado-Perez-ebook/dp/B07CQ2NZG6/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Invisible+Women%3A+Exposing+Data+Bias+in+a+World+Designed+for+Men&qid=1610451969&s=digital-text&sr=1-1) y en español se titula: [La mujer invisible: Descubre cómo los datos configuran un mundo hecho por y para los hombres](https://www.amazon.com/-/es/Caroline-Criado-Perez-ebook/dp/B082VMCR2H/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=La+mujer+invisible%3A+Descubre+c%C3%B3mo+los+datos+configuran+un+mundo+hecho+por+y+para+los+hombres&qid=1610452012&s=digital-text&sr=1-1)
+5. [The Ethical Algorithm: The Science of Socially Aware Algorithm Design](https://www.amazon.com/-/es/Michael-Kearns-ebook/dp/B07XLTXBXV/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Ethical+Algorithm%3A+The+Science+of+Socially+Aware+Algorithm+Design&qid=1610452055&s=digital-text&sr=1-1) y en español se titula: [El algoritmo Ético. La Ciencia Del Diseño de algoritmos socialmente responsables](https://www.amazon.com/-/es/Michael-Kearns-ebook/dp/B08L1WH98Q/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=El+algoritmo+%C3%89tico.+La+Ciencia+Del+Dise%C3%B1o+de+algoritmos+socialmente+responsables&qid=1610452079&s=digital-text&sr=1-1)
+6. [The Overstory: A Novel](https://www.amazon.com/-/es/Richard-Powers-ebook/dp/B073VX7HT4/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Overstory%3A+A+Novel&qid=1610452095&s=digital-text&sr=1-1) y en español se titula: [El clamor de los bosques](https://www.amazon.com/-/es/Richard-Powers/dp/8491814442/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=El+clamor+de+los+bosques&qid=1610452142&s=digital-text&sr=1-1)
+7. [Apollo 13](https://www.amazon.com/-/es/James-Lovell-ebook/dp/B07NSN3CZH/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Apollo+13+%28English+Edition%29&qid=1610738817&sr=8-1)
+8. [Captivating Technology: Race, Carceral Technoscience, and Liberatory Imagination in Everyday Life](https://www.amazon.com/-/es/Ruha-Benjamin-ebook/dp/B07S61LLGW/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&keywords=Captivating+Technology%3A+Race%2C+Carceral+Technoscience%2C+and+Liberatory+Imagination+in+Everyday+Life&qid=1610738843&sr=8-1)
+9. [Race After Technology: Abolitionist Tools for the New Jim Code](https://www.amazon.com/-/es/Ruha-Benjamin-ebook-dp-B07V6M9VQ5/dp/B07V6M9VQ5/ref=mt_other?_encoding=UTF8&me=&qid=)
+10. [When Breath Becomes Air](https://www.amazon.com/-/es/Paul-Kalanithi-ebook/dp/B00XSSYR50/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=When+Breath+Becomes+Air&qid=1610452166&s=digital-text&sr=1-1) y en español se titula: [Recuerda que vas a morir. Vive (Los Tres Mundos)](https://www.amazon.com/Recuerda-que-vas-morir-prep%C3%A1rense/dp/8432229490)
+11. [Supersizing the Mind: Embodiment, Action, and Cognitive Extension (Philosophy of Mind)](https://www.amazon.com/-/es/Andy-Clark-ebook/dp/B004MDLRQW/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Supersizing+the+Mind%3A+Embodiment%2C+Action%2C+and+Cognitive+Extension&qid=1610452286&s=books&sr=1-1)
+12. [The Beginning of Infinity: Explanations That Transform the world](https://www.amazon.com/-/es/David-Deutsch-ebook/dp/B005DXR5ZC/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Beginning+of+Infinity%3A+Explanations+That+Transform+the+world&qid=1610452304&s=books&sr=1-1)
+13. [Other Minds: The Octopus, the Sea, and the Deep Origins of Consciousness](https://www.amazon.com/-/es/Peter-Godfrey-Smith-ebook/dp/B01FQRPIIA/ref=sr_1_fkmr0_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Other+Minds.The+Octopus+And+The+Evolution+Of+Inte%3A+The+Octopus+and+the+Evolution+of+Intelligent+Life&qid=1610452321&s=books&sr=1-1-fkmr0) y en español se titula: Otras mentes. [El pulpo, el mar y los origenes profundos de la consciencia](https://www.amazon.com/-/es/Peter-Godfrey-Smith-ebook/dp/B075VFTRC5/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Otras+mentes.+El+pulpo%2C+el+mar+y+los+origenes+profundos+de+la+consciencia&qid=1610452346&s=books&sr=1-1)
+14. [Neural-Symbolic Cognitive Reasoning (Cognitive Technologies)](https://www.amazon.com/-/es/Artur-S-DAvila-Garcez/dp/3540732454/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Neural-Symbolic+Cognitive+Reasoning&qid=1610452359&s=books&sr=1-1)
+15. [Superintelligence: Paths, Dangers, Strategies](https://www.amazon.com/-/es/Nick-Bostrom-ebook/dp/B00LOOCGB2/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Superintelligence%3A+Paths%2C+Dangers%2C+Strategies&qid=1610452385&s=books&sr=1-1) y en español se titula: [Superinteligencia: Caminos, peligros, estrategias](https://www.amazon.com/-/es/Nick-Bostrom-ebook/dp/B0796XM4J5/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Superinteligencia%3A+Caminos%2C+peligros%2C+estrategias&qid=1610452410&s=books&sr=1-1)
+16. [Human + Machine: Reimagining Work in the Age of AI](https://www.amazon.com/-/es/Paul-R-Daugherty-ebook/dp/B075FCVTRR/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Human+%2B+Machine%3A+Reimagining+Work+in+the+Age+of+AI&qid=1610452425&s=books&sr=1-1)
+17. [How to Create a Mind: The Secret of Human Thought Revealed](https://www.amazon.com/-/es/Ray-Kurzweil/dp/0143124048/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=How+to+Create+a+Mind%3A+The+Secret+of+Human+Thought+Revealed&qid=1610452452&s=books&sr=1-1) y en español se titula: [Cómo crear una mente](https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B01348WTTO/ref=sr_1_2?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=%28COMO+CREAR+UNA+MENTE&qid=1610452480&s=books&sr=1-2)
+18. [The Singularity Is Near: When Humans Transcend Biology](https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B000QCSA7C/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Singularity+Is+Near%3A+When+Humans+Transcend+Biology&qid=1610452738&s=books&sr=1-1) y en español se titula: [La Singularidad está cerca](https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B01283W7UM/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=La+Singularidad+est%C3%A1+cerca&qid=1610452752&s=books&sr=1-1)
+19. [The Sentient Machine: The Coming Age of Artificial Intelligence](https://www.amazon.com/-/es/Amir-Husain-ebook/dp/B071YCS3WX/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Sentient+Machine%3A+The+Coming+Age+of+Artificial+Intelligence&qid=1610452773&s=books&sr=1-1)
+20. [The Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies](https://www.amazon.com/-/es/Erik-Brynjolfsson-ebook/dp/B00D97HPQI/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Second+Machine+Age%3A+Work%2C+Progress%2C+and+Prosperity+in+a+Time+of+Brilliant+Technologies&qid=1610452796&s=books&sr=1-1)
+21. [The Simulation Hypothesis: An MIT Computer Scientist Shows Why AI, Quantum Physics and Eastern Mystics All Agree We Are In a Video Game](https://www.amazon.com/-/es/Rizwan-Virk-ebook/dp/B07M81F1KG/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Simulation+Hypothesis%3A+An+MIT+Computer+Scientist+Shows+Why+AI%2C+Quantum+Physics+and+Eastern+Mystics+All+Agree+We+Are+In+a+Video+Game&qid=1610452810&s=books&sr=1-1)
+22. [Privacy is Power Why and How You Should Take Back Control of Your Data](https://www.amazon.com/-/es/Carissa-V%C3%A9liz-ebook/dp/B08788L77V/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Privacy+is+Power+Why+and+How+You+Should+Take+Back+Control+of+Your+Data&qid=1610452832&s=books&sr=1-1)
+23. [What Do We Know and What Should We Do About Internet Privacy?](https://www.amazon.com/-/es/Paul-Bernal-ebook/dp/B082DLCKVJ/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=What+Do+We+Know+and+What+Should+We+Do+About+Internet+Privacy%3F&qid=1610452846&s=books&sr=1-1)
+24. [Privacy in Context: Technology, Policy, and the Integrity of Social Life](https://www.amazon.com/-/es/Helen-Nissenbaum/dp/0804752370/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Privacy+in+Context%3A+Technology%2C+Policy%2C+and+the+Integrity+of+Social+Life&qid=1610452863&s=books&sr=1-1)
+25. [Privacy: A Short History](https://www.amazon.com/-/es/David-Vincent-ebook/dp/B01CGHXKZG/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Privacy%3A+A+Short+History&qid=1610452886&s=books&sr=1-1)
+26. [The Age of Surveillance Capitalism. The Fight for a Human Future at the New Frontier of Power](https://www.amazon.com/-/es/Shoshana-Zuboff-ebook/dp/B01N7UERGX/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=The+Age+of+Surveillance+Capitalism.+The+Fight+for+a+Human+Future+at+the+New+Frontier+of+Power&qid=1610452969&s=books&sr=1-1) y en español se titula: [La era del capitalismo de la vigilancia: La lucha por un futuro humano frente a las nuevas fronteras del poder (Estado y Sociedad)](https://www.amazon.com/-/es/Shoshana-Zuboff-ebook/dp/B08HFWFHTP/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=La+era+del+capitalismo+de+la+vigilancia%3A+La+lucha+por+un+futuro+humano+frente+a+las+nuevas+fronteras+del+poder+%28Estado+y+Sociedad%29&qid=1610452998&s=books&sr=1-1)
+27. [T-Minus AI: Humanity’s Countdown to Artificial Intelligence and the New Pursuit of Global Power](https://www.amazon.com/-/es/Michael-Kanaan-ebook/dp/B083M7V9FZ/ref=tmm_kin_swatch_0?_encoding=UTF8&qid=1610453022&sr=1-1)
+28. [Thinking, Fast & Slow](https://www.amazon.com/-/es/Daniel-Kahneman-ebook/dp/B00555X8OA/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Thinking%2C+Fast+%26+Slow&qid=1610453064&s=digital-text&sr=1-1) y en español se titula: [Pensar rápido, pensar despacio (Psicología)](https://www.amazon.com/-/es/Daniel-Kahneman-ebook/dp/B008BPHBTO/ref=tmm_kin_swatch_0?_encoding=UTF8&qid=1610453088&sr=1-1-catcorr)
+
+
+## Libros de ficción
+
+1. [Zed](https://www.amazon.com/-/es/Joanna-Kavenna-ebook/dp/B07PZJQM3P/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Zed+Joanna+Kavenna&qid=1610739228&sr=8-1)
+2. [Artificial Condition: The Murderbot Diaries](https://www.amazon.com/Artificial-Condition-Murderbot-Martha-Wells/dp/1250186927) y en español se titula: [Condición artificial: Los diarios de Matabot (Alethé)](https://www.amazon.com/-/es/Martha-Wells-ebook/dp/B07ZJNDD7R/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=condicion+artificial+spanish&qid=1610448985&s=books&sr=1-1)
+
+
+## Libros de consulta
+
+1. [Deep Learning (Adaptive Computation and Machine Learning series)](https://www.deeplearningbook.org/)
+2. [Understanding Machine Learning: From Theory to Algorithms](https://www.amazon.com/-/es/Shai-Shalev-Shwartz-ebook/dp/B00J8LQU8I/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&dchild=1&keywords=Understanding+Machine+Learning%3A+From+Theory+to+Algorithms&qid=1610453168&s=digital-text&sr=1-1)
+3. [Intro to Statistical Learning, with Applications in R](https://statlearning.com/ISLR%20Seventh%20Printing.pdf)
+4. [The Elements of Statistical Learning: Data Mining, Inference, and Prediction](https://web.stanford.edu/~hastie/ElemStatLearn/)
+5. [Computer Age Statistical Inference: Algorithms, Evidence, and Data Science](https://web.stanford.edu/~hastie/CASI/)
+6. [Reinforcement Learning: An Introduction (Adaptive Computation and Machine Learning series)](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf)
+7. [Algorithms for Data and Computation Privacy](https://www.springer.com/gp/book/9783030588953)
+
+
+Para este post tomé como referencias a las siguientes fuentes :
+
+* [HAI Recommended Reading: 10 Books Worth Checking Out](https://hai.stanford.edu/blog/hai-recommended-reading-10-books-worth-checking-out)
+* [Our Privacy Opportunity course by OpenMined](https://courses.openmined.org/)
