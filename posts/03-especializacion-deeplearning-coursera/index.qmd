@@ -6,7 +6,9 @@ categories: [DeepLearning, Mooc, Course, Coursera]
 image: "coursera.png"
 ---
 
-El progreso del año 2021 ya esta al 78%, y es hora de empezar a contarles el progreso de mis estudios en IA. Este post estará dedicado al primer curso online que me hizo sentir muy feliz y orgulloso fue [La especialización de Deep Learning](https://www.deeplearning.ai/program/deep-learning-specialization/) dictada por Andrew NG (el mejor) en Coursera, y es que les voy a ser sinceros no fue nada fácil primero porque todo estaba en inglés y tenía que volver a repasar matemáticas, pero como dice Andrew NG al final de cada video:
+> El progreso del año 2021 ya esta al 78%, y es hora de empezar a contarles el progreso de mis estudios en IA. 
+
+Este post estará dedicado al primer curso online que me hizo sentir muy feliz y orgulloso fue [La especialización de Deep Learning](https://www.deeplearning.ai/program/deep-learning-specialization/) dictada por Andrew NG (el mejor) en Coursera, y es que les voy a ser sinceros no fue nada fácil primero porque todo estaba en inglés y tenía que volver a repasar matemáticas, pero como dice Andrew NG al final de cada video:
 
 ![Frase celebre de Andrew Ng](andrewngunderstand.jpeg)
 

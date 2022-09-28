@@ -6,7 +6,9 @@ categories: [DeepLearning, InteligenciaArtificial]
 image: automobile.png
 ---
 
-Hace unos años cuando decidí estudiar Inteligencia Artificial no sabía por dónde empezar. Recordaba muy poco de álgebra lineal, cálculo y estadística. Por otro lado, los documentos de divulgación científica se encontraban en inglés y en ese momento mi nivel de inglés era muy bajo, entonces tenía dos obstáculos: los fundamentos matemáticos y el idioma.
+>Hace unos años cuando decidí estudiar Inteligencia Artificial no sabía por dónde empezar. Recordaba muy poco de álgebra lineal, cálculo y estadística.
+
+Por otro lado, los documentos de divulgación científica se encontraban en inglés y en ese momento mi nivel de inglés era muy bajo, entonces tenía dos obstáculos: los fundamentos matemáticos y el idioma.
 
 Así que lo primero que hice fue buscar “Cursos de Inteligencia Artificial“ en Google y el resultado fue de todo tipo, desde maestrías, moocs, bootcamps,repositorios de código y blogs. Algunos de ellos decían que no era necesario aprender matemáticas, otros que sí, términos como [Machine Learning](https://es.wikipedia.org/wiki/Aprendizaje_autom%C3%A1tico), [Deep Learning](https://es.wikipedia.org/wiki/Aprendizaje_profundo), [Computer Vision](https://es.wikipedia.org/wiki/Visi%C3%B3n_artificial), [Natural Language Processing](https://es.wikipedia.org/wiki/Procesamiento_de_lenguajes_naturales), currsos por determinado lenguaje programación, también encontré que existían librerías como [Tensorflow](https://www.tensorflow.org/), [Caffe](https://caffe.berkeleyvision.org/), [Pythorch](https://pytorch.org/), etc. 
 
