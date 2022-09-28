@@ -2,14 +2,14 @@ project:
   type: website
   output-dir: docs
 website:
-  title: "lzeladamv2"
+  title: "Alexander Zelada"
   navbar:
     right:
       - about.qmd
       - icon: github
-        href: https://github.com/
+        href: https://github.com/lzeladam
       - icon: twitter
-        href: https://twitter.com
+        href: https://twitter.com/lzeladam
 format:
   html:
     theme: cosmo
