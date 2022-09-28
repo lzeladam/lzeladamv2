@@ -2,7 +2,7 @@ project:
   type: website
   output-dir: docs
 website:
-  title: "Alexander Zelada"
+  title: "Deep Learning y Privacidad"
   navbar:
     right:
       - about.qmd
