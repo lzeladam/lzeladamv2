@@ -2,9 +2,10 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/especializacion-deeplearning-coursera/index.html",
-      "/posts/libros-de-inteligencia-artificial/index.html",
-      "/posts/welcome/index.html"
+      "/posts/04-por-que-la-privacidad-diferencial-es-increible/index.html",
+      "/posts/03-especializacion-deeplearning-coursera/index.html",
+      "/posts/02-libros-de-inteligencia-artificial/index.html",
+      "/posts/01-Bienvenida/index.html"
     ]
   }
 ]

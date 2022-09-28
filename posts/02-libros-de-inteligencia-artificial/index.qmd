@@ -2,7 +2,7 @@
 title: "Libros de Inteligencia Artificial para el 2021"
 author: "Alexander Zelada"
 date: "2021-01-15"
-categories: [DeepLearning, Books, EthicalAI]
+categories: [DeepLearning, Books, Ethics]
 image: "book.png"
 ---
 
