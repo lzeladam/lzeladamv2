@@ -5,8 +5,7 @@ date: "2022-03-23"
 categories: [Differential Privacy, Privacy-preserving]
 image: "privacy.png"
 ---
-
-"Traducción al español del post: [Why differential privacy is awesome]
+> Traducción al español del post "Why differential privacy is awesome"
 
 ¿Cómo se puede publicar los datos de las personas protegiendo su privacidad? Esta pregunta está lejos de ser nueva. Las agencias de estadística se han enfrentado a esto durante décadas. Los informáticos han elaborado varios conceptos para plasmar esta idea. Sin embargo, ninguno de ellos ha sido muy satisfactorio: se demostró que todos estos conceptos se rompían en algunas circunstancias. También eran difíciles de aplicar sin destruir la utilidad de los datos.
 
@@ -19,7 +18,7 @@ Este primer artículo de introducción a la privacidad diferencial intentará re
 
 Suponga que tiene un proceso que toma alguna base de datos como entrada y devuelve alguna salida.
 
-!(df1.png)
+![](df1.png)
 
 Puede ser cualquier proceso. Por ejemplo:
 
@@ -30,11 +29,11 @@ Puede ser cualquier proceso. Por ejemplo:
 
 Para hacer que un proceso sea diferencialmente privado, generalmente debes modificarlo un poco. Por lo general, se agrega algo de aleatoriedad o ruido en algunos lugares. Lo que haga exactamente y cuánto ruido se agregue depende del proceso que se esté modificando. Voy a prescindir de esa parte y simplemente diré que tu proceso ahora está haciendo una “magia” desconocida.
 
-!(df2.png)
+![](df2.png)
 
 Ahora, elimina a alguien de tu base de datos y ejecuta nuevamente el proceso. Si el nuevo proceso es diferencialmente privado, entonces las dos salidas son básicamente las mismas. Esto debe ser cierto sin importar a quién se elimine y qué base de datos tenía en primer lugar.
 
-!(df3.png)
+![](df3.png)
 
 Por "básicamente lo mismo", no me refiero a "se parece un poco". En principio, recuerda que la magia que agregaste al proceso fue aleatoria. No siempre se obtiene el mismo resultado si se ejecuta el nuevo proceso varias veces. Entonces, ¿qué significa "básicamente lo mismo" en este contexto? Significa que puede obtener exactamente el mismo resultado de ambas bases de datos con una probabilidad similar.
 
@@ -86,4 +85,6 @@ Espero que la intuición básica de la privacidad diferencial esté cristalina. 
 
 También espero que ahora te preguntes cómo funciona realmente. ¿Qué se esconde detrás de esta magia que hace que todo sea seguro y privado? ¿Por qué la privacidad diferencial tiene todas las increíbles propiedades que he mencionado? Este es el tema exacto del siguiente artículo de esta serie, que lo explica con más detalle sin dejar de lado las matemáticas pesadas.
 
+
 > El autor original de este post es Damien Desfontaine, en Twitter como [@TedOnPrivacy](https://twitter.com/TedOnPrivacy), y el motivo principal que me llevó a traducir la publicación original al español fue el aprendizaje y aportar contenido a la comunidad hispana de Privacidad Diferencial.
+

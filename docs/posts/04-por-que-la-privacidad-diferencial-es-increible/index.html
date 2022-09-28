@@ -142,14 +142,16 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>“Traducción al español del post: [Why differential privacy is awesome]</p>
+<blockquote class="blockquote">
+<p>Traducción al español del post “Why differential privacy is awesome”</p>
+</blockquote>
 <p>¿Cómo se puede publicar los datos de las personas protegiendo su privacidad? Esta pregunta está lejos de ser nueva. Las agencias de estadística se han enfrentado a esto durante décadas. Los informáticos han elaborado varios conceptos para plasmar esta idea. Sin embargo, ninguno de ellos ha sido muy satisfactorio: se demostró que todos estos conceptos se rompían en algunas circunstancias. También eran difíciles de aplicar sin destruir la utilidad de los datos.</p>
 <p>Todo esto cambió en 2006, cuando cuatro investigadores introdujeron la privacidad diferencial. Este nuevo concepto adoptó un enfoque novedoso para definir la filtración de privacidad, uno que resultaría mucho más riguroso y fructífero. Entonces, ¿qué hace que la privacidad diferencial sea especial? ¿Cómo tuvo tanto éxito en los círculos académicos? ¿Por qué los gobiernos y las empresas tecnológicas comenzaron a adoptar la privacidad diferencial en la publicación de sus datos?</p>
 <p>Este primer artículo de introducción a la privacidad diferencial intentará responder a esa pregunta. Primero, describiremos a grandes rasgos lo que hay detrás de este concepto tan exitoso. Luego, explicaremos por qué tiene tanto éxito y por qué es mucho mejor que todos los conceptos elaborados hasta ahora</p>
 <section id="la-idea-central-detrás-de-la-privacidad-diferencial" class="level2">
 <h2 class="anchored" data-anchor-id="la-idea-central-detrás-de-la-privacidad-diferencial">La idea central detrás de la privacidad diferencial</h2>
 <p>Suponga que tiene un proceso que toma alguna base de datos como entrada y devuelve alguna salida.</p>
-<p>!(df1.png)</p>
+<p><img src="df1.png" class="img-fluid"></p>
 <p>Puede ser cualquier proceso. Por ejemplo:</p>
 <ul>
 <li>Un proceso que calcula algunas estadísticas (“dime cuántos usuarios tienen el pelo rojo”)</li>
@@ -158,9 +160,9 @@ ul.task-list li input[type="checkbox"] {
 <li>… Ya vas entendiendo la idea.</li>
 </ul>
 <p>Para hacer que un proceso sea diferencialmente privado, generalmente debes modificarlo un poco. Por lo general, se agrega algo de aleatoriedad o ruido en algunos lugares. Lo que haga exactamente y cuánto ruido se agregue depende del proceso que se esté modificando. Voy a prescindir de esa parte y simplemente diré que tu proceso ahora está haciendo una “magia” desconocida.</p>
-<p>!(df2.png)</p>
+<p><img src="df2.png" class="img-fluid"></p>
 <p>Ahora, elimina a alguien de tu base de datos y ejecuta nuevamente el proceso. Si el nuevo proceso es diferencialmente privado, entonces las dos salidas son básicamente las mismas. Esto debe ser cierto sin importar a quién se elimine y qué base de datos tenía en primer lugar.</p>
-<p>!(df3.png)</p>
+<p><img src="df3.png" class="img-fluid"></p>
 <p>Por “básicamente lo mismo”, no me refiero a “se parece un poco”. En principio, recuerda que la magia que agregaste al proceso fue aleatoria. No siempre se obtiene el mismo resultado si se ejecuta el nuevo proceso varias veces. Entonces, ¿qué significa “básicamente lo mismo” en este contexto? Significa que puede obtener exactamente el mismo resultado de ambas bases de datos con una probabilidad similar.</p>
 <p>¿Qué tiene que ver esto con la privacidad? Bueno, supongamos que eres una atacante que intenta averiguar si su objetivo está en los datos originales. Con mirar el resultado final, no se puede estar 100% seguro de nada. Claro, podría haber venido de una base de datos con su objetivo en ella. Pero también podría haber venido exactamente de la misma base de datos, sin su objetivo. Ambas opciones tienen una probabilidad similar, por lo que no hay mucho que puedas decir.</p>
 <p>Es posible que hayas notado que esta definición no dice nada sobre cómo se ven los datos de salida. La privacidad diferencial no es una propiedad de los datos de salida. Es muy diferente, digamos, k-anonymity, una de las primeras definiciones de privacidad de datos. No puede mirar los datos de salida y determinar si satisface la privacidad diferencial. En cambio, la privacidad diferencial es una propiedad del proceso: debes saber cómo se generaron los datos para determinar si son diferencialmente privados.</p>
