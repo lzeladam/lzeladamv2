@@ -1,12 +1,24 @@
 ---
-title: "Welcome To My Blog"
-author: "Tristan O'Malley"
-date: "2022-09-25"
-categories: [news]
+title: "Empezando a estudiar Inteligencia Artificial"
+author: "Alexander Zelada"
+date: "2020-08-16"
+categories: [DeepLearning, InteligenciaArtificial]
+image: automobile.png
 ---
 
-This is the first post in a Quarto blog. Welcome!
+Hace unos años cuando decidí estudiar Inteligencia Artificial no sabía por dónde empezar. Recordaba muy poco de álgebra lineal, cálculo y estadística. Por otro lado, los documentos de divulgación científica se encontraban en inglés y en ese momento mi nivel de inglés era muy bajo, entonces tenía dos obstáculos: los fundamentos matemáticos y el idioma.
 
-![](thumbnail.jpg)
+Así que lo primero que hice fue buscar “Cursos de Inteligencia Artificial“ en Google y el resultado fue de todo tipo, desde maestrías, moocs, bootcamps,repositorios de código y blogs. Algunos de ellos decían que no era necesario aprender matemáticas, otros que sí, términos como [Machine Learning](https://es.wikipedia.org/wiki/Aprendizaje_autom%C3%A1tico), [Deep Learning](https://es.wikipedia.org/wiki/Aprendizaje_profundo), [Computer Vision](https://es.wikipedia.org/wiki/Visi%C3%B3n_artificial), [Natural Language Processing](https://es.wikipedia.org/wiki/Procesamiento_de_lenguajes_naturales), currsos por determinado lenguaje programación, también encontré que existían librerías como [Tensorflow](https://www.tensorflow.org/), [Caffe](https://caffe.berkeleyvision.org/), [Pythorch](https://pytorch.org/), etc. 
 
-Since this post doesn't specify an explicit `image`, the first image in the post will be used in the listing page of posts.
+Y finalmente estaban los informes, encuestas y estudios sobre la situación actual y la tendencia del mercado en Inteligencia Artificial.
+
+Si todos estos recursos te abrumaron y acabaron con tus ganas de estudiar simplemente porque no sabías por donde empezar, verás que no fuiste el único, yo también pasé por lo mismo.
+
+En ese tiempo de bloqueo me mantuve consumiendo el lado más romántico y filosófico de la inteligencia artificial mediante libros y películas de ciencia ficción, pero decidí intentar estudiar nuevamente la parte técnica, para eso me planteé eliminar los obstáculos que mencioné al inicio con los siguientes compromisos:
+
+- Estudiar inglés de manera constante
+- Crear un blog para llevar mis apuntes
+- Estudiar los fundamentos Matemáticos
+- Consumir recursos como audiobooks, ebook, papers, películas y documentales.
+
+La razón de ser de este blog es justamente compartir mi aprendizaje contigo, hacerlo más accesible y decirte que a pesar de la gran cantidad de términos, formulas y código no tienes que ser un [Andrew Ng](https://en.wikipedia.org/wiki/Andrew_Ng) o un [Yann LeCun](https://en.wikipedia.org/wiki/Yann_LeCun) para comprender este mundo e ir progresando si te planteas objetivos realistas y eres constante como el [T-800](https://terminator.fandom.com/wiki/T-800).
