@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/especializacion-deeplearning-coursera/index.html",
       "/posts/libros-de-inteligencia-artificial/index.html",
       "/posts/welcome/index.html"
     ]
