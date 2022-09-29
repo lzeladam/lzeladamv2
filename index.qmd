@@ -1,5 +1,5 @@
 ---
-title: "Acompañame en mi ruta de apredizaje sobre Privacy-Preserving y Deep Learning"
+title: "Preservación de la Privacidad en la Inteligencia Artificial"
 listing:
   contents: posts
   sort: "date desc"
