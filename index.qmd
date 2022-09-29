@@ -1,5 +1,5 @@
 ---
-title: "Alexander Zelada"
+title: "Acompañame en mi ruta de apredizaje sobre Privacy-Preserving y Deep Learning"
 listing:
   contents: posts
   sort: "date desc"
