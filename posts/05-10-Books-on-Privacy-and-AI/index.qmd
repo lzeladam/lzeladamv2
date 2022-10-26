@@ -5,11 +5,13 @@ date: "2022-10-27"
 categories: [Privacy, Books, Privacy-Preserving]
 image: "iconbookprivacy.png"
 ---
+If you’re like most people, you probably think that your data is pretty safe.
+After all, it’s not like you’re doing anything illegal or shady – so what do you have to worry about?
+Unfortunately, the truth is that our data is far from safe.
+
 ![](privacybooks.jpg)
 
-If you’re like most people, you probably think that your data is pretty safe. After all, it’s not like you’re doing anything illegal or shady – so what do you have to worry about?
 
-Unfortunately, the truth is that our data is far from safe.
 
 That’s why I believe that everyone should educate themselves on the concept of privacy and privacy-enhancing technologies.
 
