@@ -84,13 +84,6 @@
     "text": "Conclusión\nEspero que la intuición básica de la privacidad diferencial esté cristalina. Si recuerdas una sola cosa, que sea este resumen de una línea: la incertidumbre en el proceso significa incertidumbre para el atacante, lo que significa mejor privacidad.\nTambién espero que ahora te preguntes cómo funciona realmente. ¿Qué se esconde detrás de esta magia que hace que todo sea seguro y privado? ¿Por qué la privacidad diferencial tiene todas las increíbles propiedades que he mencionado? Este es el tema exacto del siguiente artículo de esta serie, que lo explica con más detalle sin dejar de lado las matemáticas pesadas.\n\nEl autor original de este post es Damien Desfontaine, en Twitter como @TedOnPrivacy, y el motivo principal que me llevó a traducir la publicación original al español fue el aprendizaje y aportar contenido a la comunidad hispana de Privacidad Diferencial."
   },
   {
-    "objectID": "posts/05-10 Books on Privacy and AI/index.html",
-    "href": "posts/05-10 Books on Privacy and AI/index.html",
-    "title": "10 Books on Privacy and AI",
-    "section": "",
-    "text": "Unfortunately, the truth is that our data is far from safe.\nThat’s why I believe that everyone should educate themselves on the concept of privacy and privacy-enhancing technologies.\nI think that these books are very useful to understand the concept of privacy and the privacy enhancing technologies like Differential Privacy, Homomorphic Encryption Secure, Federate Learning.\n\n\nPrivacy-Preserving Machine Learning\n\nIs a comprehensive guide to avoiding data breaches in your machine learning projects. You’ll get to grips with modern privacy-enhancing techniques such as differential privacy, compressive privacy, and synthetic data generation\nLink: https://www.manning.com/books/privacy-preserving-machine-learning\nAutor: J. Morris Chang, Di Zhuang, and G. Dumindu Samaraweera\n\nData Privacy, A runbook for engineers\n\nData Privacy teaches you to design, develop, and measure the effectiveness of privacy programs. You’ll learn from author Nishant Bhajaria, an industry-renowned expert who has overseen privacy at Google, Netflix, and Uber\nLink: https://www.manning.com/books/data-privacy\nAutor: Nishant Bhajaria"
-  },
-  {
     "objectID": "posts/05-10-Books-on-Privacy-and-AI/index.html",
     "href": "posts/05-10-Books-on-Privacy-and-AI/index.html",
     "title": "10 Books on Privacy and AI",
