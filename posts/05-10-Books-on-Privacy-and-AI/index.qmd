@@ -3,7 +3,7 @@ title: "10 Books on Privacy and AI"
 author: "Alexander Zelada"
 date: "2022-10-27"
 categories: [Privacy, Books, Privacy-Preserving]
-image: "book.png"
+image: "iconbookprivacy.png"
 ---
 ![](privacybooks.jpg)
 
