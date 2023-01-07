@@ -22,7 +22,7 @@ Hace unos días **[Andrej Karphaty](https://karpathy.ai/)** publicó el proyecto
 
 **Empecemos**
 
-En la versión original de [prepare.py](http://prepare.py) se importan las librerías *tqdm, numpy, tiktoken* y **datasets*. S*in embargo, yo en mi proceso de fortalecer los conceptos, importé estas dos funciones  *load_dataset_builder* y *get_dataset_split_names* de manera adicional*.*
+En la versión original de [prepare.py](http://prepare.py) se importan las librerías *tqdm, numpy, tiktoken* y *datasets*. Sin embargo, yo en mi proceso de fortalecer los conceptos, importé estas dos funciones  *load_dataset_builder()* y *get_dataset_split_names()* de manera adicional.
 
 ```python
 from tqdm import tqdm
@@ -72,7 +72,7 @@ Para listar los subconjuntos [’train’, ‘validation’, ‘test’] de OWT 
 print("--Subconjuntos--", get_dataset_split_names("openwebtext"))
 ```
 
-Luego de haber inspeccionado y entendido más sobre el dataset de OWT, procedemos a descargarlo, este proceso se hace con la función ****‘**load_dataset()’** y acá te recomiendo que tengas un como mínimo 200GB de espacio libre en disco, que conectes tu cable ethernet al portátil y te vayas por un café porque son 8M de documentos o 54GB que se irán almacenando en $HOME/.cache/huggingface/datasets/openwebtext/plain_text/1.0.0/…
+Luego de haber inspeccionado y entendido más sobre el dataset de OWT, procedemos a descargarlo, este proceso se hace con la función ‘**load_dataset()’** y acá te recomiendo que tengas un como mínimo 200GB de espacio libre en disco, que conectes tu cable ethernet al portátil y te vayas por un café porque son 8M de documentos o 54GB que se irán almacenando en $HOME/.cache/huggingface/datasets/openwebtext/plain_text/1.0.0/…
 
 ```python
 dataset = load_dataset("openwebtext")
