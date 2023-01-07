@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Alexander Zelada">
+<meta name="dcterms.date" content="2023-01-07">
+
+<title>Deep Learning y Privacidad - Desglosando el código de prepare.py del nanoGPT - Parte 1</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Deep Learning y Privacidad</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/lzeladam"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/lzeladam"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Desglosando el código de prepare.py del nanoGPT - Parte 1</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">NLP</div>
+                <div class="quarto-category">GPT</div>
+                <div class="quarto-category">Pytorch</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Alexander Zelada </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">January 7, 2023</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block page-columns page-full" id="quarto-document-content">
+
+
+
+
+<blockquote class="blockquote">
+<p>(DP-SGD), el método de entrenamiento de DP más popular para el aprendizaje profundo, realiza esta protección mediante la inyección de ruido durante el entrenamiento.</p>
+</blockquote>
+<p>Hace unos días <strong><a href="https://karpathy.ai/">Andrej Karphaty</a></strong> publicó el proyecto <a href="https://github.com/karpathy/nanoGPT"><strong>nanoGPT</strong></a>, así que intenté reproducirlo en mi portátil. Sin embargo, durante el proceso de replicación me fallaron muchas cosas. Después de leer el código, me di cuenta de que tenía muchas lagunas conceptuales. Por lo tanto, decidí desglosar la primera parte del proyecto que consiste en descargar el dataset, tokenizarlo, hacer un memmap y generar los binarios train.bin y val.bin.</p>
+<aside>
+<p>💡 Importante:</p>
+</aside>
+<blockquote class="blockquote">
+<p>Descartar replicar este proyecto en Windows, porque <strong><em>Pytorch 2.0</em></strong> no tiene soporte para este SO y si puedes también evita WSL.</p>
+<p><a href="https://github.com/pytorch/pytorch/issues/90768">https://github.com/pytorch/pytorch/issues/90768</a></p>
+<p>Instalar Python 3.9 como mínimo y en caso no tengas una GPU te recomiendo <a href="https://lambdalabs.com/"><strong>LambdaLabs</strong></a></p>
+</blockquote>
+<p><strong>Empecemos</strong></p>
+<p>En la versión original de <a href="http://prepare.py">prepare.py</a> se importan las librerías <em>tqdm, numpy, tiktoken</em> y **datasets<em>. S</em>in embargo, yo en mi proceso de fortalecer los conceptos, importé estas dos funciones <em>load_dataset_builder</em> y <em>get_dataset_split_names</em> de manera adicional<em>.</em></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tqdm <span class="im">import</span> tqdm</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tiktoken</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset, load_dataset_builder, get_dataset_split_names</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<blockquote class="blockquote page-columns page-full">
+<p>Librerías:</p>
+<aside>
+<p>🗃️ <strong>tqdm</strong> : se usa para mostrar una barra de progreso durante iteraciones largas</p>
+</aside>
+<aside>
+<p>🗃️ <strong>numpy</strong>: servirá para trabajar con las matrices de forma eficiente</p>
+</aside>
+<aside>
+<p>🗃️ <strong>tiktoken</strong>: es el tokenizador opensource más rápido y lo liberó OpenAI</p>
+</aside>
+<aside>
+<p>🗃️ <strong>datasets</strong>: es la librería creada por Hugging Face que facilita el acceso a datasets populares de una manera sencilla</p>
+</aside>
+</blockquote>
+<p>Más adelante se aplicará la función <strong><em>‘map()’</em></strong> al dataset y se le proporcionará el parámetro ‘<strong>num_proc</strong>’ para definir el número de procesos que se ejecutarán en simultáneo.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># un buen numero a usar es aproximadamente = CPU cores // 2</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>num_proc <span class="op">=</span> <span class="dv">8</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Antes de descargar y empezar a manipular el dataset de <strong><a href="https://huggingface.co/datasets/openwebtext">openwebtext</a></strong>, es importante inspeccionarlo y obtener información sobre este dataset, como su descripción, características, size, etc. Para hacer esto, se usa la función ’<strong><em>load_dataset_builder()’</em></strong></p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ds_builder <span class="op">=</span> load_dataset_builder(<span class="st">"openwebtext"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Descripción de OWT: </span><span class="ch">\n</span><span class="st">"</span>, ds_builder.info.description, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Features de OWT: </span><span class="ch">\n</span><span class="st">"</span>, ds_builder.info.features, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Cita de OWT: </span><span class="ch">\n</span><span class="st">"</span>, ds_builder.info.citation, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Sitio Web de OWT: </span><span class="ch">\n</span><span class="st">"</span>, ds_builder.info.homepage, <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<blockquote class="blockquote">
+<p>A partir de ahora nos referiremos a OpenWebText como OWT.</p>
+</blockquote>
+<p>Para listar los subconjuntos [’train’, ‘validation’, ‘test’] de OWT usamos la función ‘<strong>get_dataset_split_names()</strong>’. <em>Este dataset por defecto sólo contiene ‘train’</em>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"--Subconjuntos--"</span>, get_dataset_split_names(<span class="st">"openwebtext"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Luego de haber inspeccionado y entendido más sobre el dataset de OWT, procedemos a descargarlo, este proceso se hace con la función ****’<strong>load_dataset()’</strong> y acá te recomiendo que tengas un como mínimo 200GB de espacio libre en disco, que conectes tu cable ethernet al portátil y te vayas por un café porque son 8M de documentos o 54GB que se irán almacenando en $HOME/.cache/huggingface/datasets/openwebtext/plain_text/1.0.0/…</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> load_dataset(<span class="st">"openwebtext"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"---Todos los subconjuntos y features---"</span>, dataset)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Con la función <strong><em>train_test_split</em></strong>() dividimos nuestro dataset en dos partes, uno llamado ‘train’ y otro ‘test’, el subconjunto ‘test’ equivale al 0.05% de OWT</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>split_dataset <span class="op">=</span> dataset[<span class="st">"train"</span>].train_test_split(</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>test_size<span class="op">=</span><span class="fl">0.0005</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>seed<span class="op">=</span><span class="dv">2357</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>shuffle<span class="op">=</span><span class="va">True</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>El contenido de la variable split_dataset sería este:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>DatasetDict({</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    train: Dataset({</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>       features: [<span class="st">'text'</span>],</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">8009762</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    test: Dataset({</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        features: [<span class="st">'text'</span>],</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">4007</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Ahora, lo que se busca es tener un subconjunto de validación (’val’), para ello usamos la función <strong><em>pop()</em></strong> para transferir el contenido del subconjunto ‘test’ a ‘val’, y luego eliminar ‘test’ del conjunto original.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>split_dataset[<span class="st">'val'</span>] <span class="op">=</span> split_dataset.pop(<span class="st">'test'</span>) <span class="co"># renombramos test como val</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Finalmente el dataset de OWT se quedaría así:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mostramos en consola ambos dataset train y val</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(split_dataset)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>El resultado de este <span class="bu">print</span> a split_dataset será: </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>DatasetDict({</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    train: Dataset({</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        features: [<span class="st">'text'</span>],</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">8009762</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    val: Dataset({</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        features: [<span class="st">'text'</span>],</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">4007</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>En el siguiente segmento se inicia el proceso de <strong><em>tokenizado</em></strong> del dataset, pero primero se instancia la variable ‘<strong><em>enc</em></strong>’ con el valor de codificación ‘<strong><em>gpt2</em></strong>’</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">'gpt2'</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> process(example):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># enconde_ordinary ignora cualquier token especial</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> enc.encode_ordinary(example[<span class="st">'text'</span>]) </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># al final del texto agregamos el token '50256 o &lt;|endoftext|&gt;, para gpt2 bpe</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    ids.append(enc.eot_token)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># creamos un diccionario 'out' con los elementos id y len</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> {<span class="st">'ids'</span>: ids, <span class="st">'len'</span>: <span class="bu">len</span>(ids)} </span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> out</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<aside>
+<p>💡 Para ilustrar que hace la función <em><strong>process()</strong> les dejo este ejemplo:</em></p>
+</aside>
+<div class="sourceCode" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Declarar una variable 'text' con una oración/sentence</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>text<span class="op">=</span> <span class="st">"Hola, me llamo Alexander y tú como te llamas?"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>ids<span class="op">=</span> enc.encode_ordinary(text) <span class="co"># tokenizamos la variable</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Estos serían los tokens que devuelve encode_ordinary</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ids) <span class="co"># [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30]</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># llamar a la función append() para agregar EOT token (50256 o &lt;|endoftext|&gt;)</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>ids.append(enc.eot_token)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(ids) <span class="co"># [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30, **50256**]</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Llamar a la función decode() para descrifar ids</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(enc.decode(ids))  <span class="co">#Hola, me llamo Alexander y tú como te llamas?&lt;|endoftext|&gt;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>¿Recuerda que al inicio hablamos de la función map() ? Pues acá la usamos para aplicarla a split_dataset y recibe los argumentos función process(), remove_columns, desc y num_proc:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aqui aplicamos la funcion process al dataset split_dataset creado lineas arriba</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>tokenized <span class="op">=</span> split_dataset.<span class="bu">map</span>(</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    process, <span class="co"># Funcion de tokenizado</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    remove_columns<span class="op">=</span>[<span class="st">'text'</span>], <span class="co"># Luego de aplicar la función al dataset se elimina la columna text</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    desc<span class="op">=</span><span class="st">"tokenizing the splits"</span>, <span class="co"># Descripción que se mostrará en la barra de progreso</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    num_proc<span class="op">=</span>num_proc <span class="co"># Número de procesos para generar un dataset local</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Este output sería un ejemplo ilustrativo:</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #0: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 392.79ex/s]</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #6: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 386.31ex/s]</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #5: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 377.24ex/s]</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #7: 100%|█████████████████████████████████████████████████████████████████████████████| 500/500 [00:01&lt;00:00, 372.65ex/s]</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #3: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 376.59ex/s]</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #4: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 364.67ex/s]</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #2: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 362.56ex/s]</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">#tokenizing the splits #1: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 360.43ex/s]</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>En el segmento de abajo vemos que ya no existe la columna ‘text’:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(tokenized)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>train: Dataset({</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        features: [<span class="st">'ids'</span>, <span class="st">'len'</span>],</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">8009762</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    val: Dataset({</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        features: [<span class="st">'ids'</span>, <span class="st">'len'</span>],</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        num_rows: <span class="dv">4007</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Para terminar, juntamos todos los ids de cada dataset en un único archivo, que luego podremos usar para el training:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> split, dset <span class="kw">in</span> tokenized.items():</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    arr_len <span class="op">=</span> np.<span class="bu">sum</span>(dset[<span class="st">'len'</span>]) <span class="co"># calculamos el tamaño total de la matriz</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    filename <span class="op">=</span> <span class="ss">f'</span><span class="sc">{</span>split<span class="sc">}</span><span class="ss">.bin'</span> <span class="co"># Acá usamos formatspec para crear de manera dinámica un archivo train.bin y val.bin</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    dtype <span class="op">=</span> np.uint16 <span class="co"># Definimos este tipo np.uint16 para números enteros sin signo en el rango de 0 a 65535 (2^16 - 1) y como el valor máximo del token EOT es 50256 y es &lt; 2^16 - 1 </span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    arr <span class="op">=</span> np.memmap(filename, dtype<span class="op">=</span>dtype, mode<span class="op">=</span><span class="st">'w+'</span>, shape<span class="op">=</span>(arr_len,)) <span class="co"># En la variable arr es del tipo memoria mapeada, esto es util porque se trabaja con archivos grandes </span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"writing </span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">..."</span>) <span class="co"># Esto indica el nombre del archivo en el que se está escribiendo la matriz por ejemplo train.bin o val.bin</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    idx <span class="op">=</span> <span class="dv">0</span> <span class="co"># Establecemos el valor 0 para iniciar</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> example <span class="kw">in</span> tqdm(dset): <span class="co"># Con tqdm tendremos una barra de progreso según vayamos iterando sobre cada elemento de dset</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>        arr[idx : idx <span class="op">+</span> example[<span class="st">'len'</span>]] <span class="op">=</span> example[<span class="st">'ids'</span>] <span class="co"># Esto es slicing para asignar los valores de example['ids'] a una sección de la matriz 'arr'</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>        idx <span class="op">+=</span> example[<span class="st">'len'</span>] <span class="co"># sumamos el valor actual de example['len']</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    arr.flush() <span class="co"># por último usamos la función flush() para vaciar el buffer, es decir escribiremos físicamente todos los datos en el disco duro.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Al final tendremos :</p>
+<blockquote class="blockquote">
+<h1 id="train.bin-de-17gb-y-val.bin-8.5mb">train.bin de ~17GB y val.bin ~8.5MB</h1>
+<h1 id="train-tiene-9b-tokens-9035582198">train tiene ~9B tokens (9,035,582,198)</h1>
+<h1 id="val-tiene-4m-tokens-4434897">val tiene ~4M tokens (4,434,897)</h1>
+</blockquote>
+<section id="luego-leeremos-los-archivos-.bin-con-numpy-de-la-siguiente-manera" class="level1">
+<h1>Luego leeremos los archivos .bin con numpy de la siguiente manera:</h1>
+</section>
+<section id="m-np.memmaptrain.bin-dtypenp.uint16-moder" class="level1">
+<h1>m = np.memmap(‘train.bin’, dtype=np.uint16, mode=‘r’)</h1>
+<blockquote class="blockquote">
+
+</blockquote>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

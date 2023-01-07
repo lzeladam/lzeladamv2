@@ -1,0 +1,231 @@
+---
+title: "Desglosando el código de prepare.py del nanoGPT - Parte 1"
+author: "Alexander Zelada"
+date: "2023-01-07"
+categories: [NLP, GPT, Pytorch]
+image: "Bienvenida.png"
+---
+>GPT-2, fue entrenado simplemente para predecir la siguiente palabra en 40GB de texto de internet
+
+Hace unos días **[Andrej Karphaty](https://karpathy.ai/)** publicó el proyecto [**nanoGPT**](https://github.com/karpathy/nanoGPT), así que intenté reproducirlo en mi portátil. Sin embargo, durante el proceso de replicación me fallaron muchas cosas. Después de leer el código, me di cuenta de que tenía muchas lagunas conceptuales. Por lo tanto, decidí desglosar la primera parte del proyecto que consiste en descargar el dataset, tokenizarlo, hacer un memmap y generar los binarios train.bin y val.bin.
+
+> 💡 Importante:
+
+
+> Descartar replicar este proyecto en Windows, porque ***Pytorch 2.0*** no tiene soporte para este SO y si puedes también evita WSL.
+> 
+> 
+> [https://github.com/pytorch/pytorch/issues/90768](https://github.com/pytorch/pytorch/issues/90768)
+> 
+> Instalar Python 3.9 como mínimo y en caso no tengas una GPU te recomiendo [**LambdaLabs**](https://lambdalabs.com/)
+> 
+
+**Empecemos**
+
+En la versión original de [prepare.py](http://prepare.py) se importan las librerías *tqdm, numpy, tiktoken* y **datasets*. S*in embargo, yo en mi proceso de fortalecer los conceptos, importé estas dos funciones  *load_dataset_builder* y *get_dataset_split_names* de manera adicional*.*
+
+```python
+from tqdm import tqdm
+import numpy as np
+import tiktoken
+from datasets import load_dataset, load_dataset_builder, get_dataset_split_names
+```
+
+> Librerías:
+> 
+>
+> 🗃️ **tqdm** :  se usa para mostrar una barra de progreso durante iteraciones largas
+> 
+> 🗃️ **numpy**: servirá para trabajar con las matrices de forma eficiente
+> 
+> 🗃️ **tiktoken**: es el tokenizador opensource más rápido y lo liberó OpenAI
+> 
+> 🗃️ **datasets**: es la librería creada por Hugging Face que facilita el acceso a datasets populares de una manera sencilla
+> 
+
+Más adelante se aplicará la función ***‘map()’*** al dataset y se le proporcionará el parámetro ‘**num_proc**’ para definir el número de procesos que se ejecutarán en simultáneo.
+
+```python
+# un buen numero a usar es aproximadamente = CPU cores // 2
+num_proc = 8
+```
+
+Antes de descargar y empezar a manipular el dataset de **[openwebtext](https://huggingface.co/datasets/openwebtext)**, es importante inspeccionarlo y obtener información sobre este dataset, como su descripción, características, size, etc. Para hacer esto, se usa la función ‘***load_dataset_builder()’***
+
+```python
+ds_builder = load_dataset_builder("openwebtext")
+
+print("Descripción de OWT: \n", ds_builder.info.description, "\n")
+print("Features de OWT: \n", ds_builder.info.features, "\n")
+print("Cita de OWT: \n", ds_builder.info.citation, "\n")
+print("Sitio Web de OWT: \n", ds_builder.info.homepage, "\n")
+```
+
+> A partir de ahora nos referiremos a OpenWebText como OWT.
+> 
+
+ 
+
+Para listar los subconjuntos [’train’, ‘validation’, ‘test’] de OWT usamos la función ‘**get_dataset_split_names()**’. *Este dataset por defecto sólo contiene ‘train’*.
+
+```python
+print("--Subconjuntos--", get_dataset_split_names("openwebtext"))
+```
+
+Luego de haber inspeccionado y entendido más sobre el dataset de OWT, procedemos a descargarlo, este proceso se hace con la función ****‘**load_dataset()’** y acá te recomiendo que tengas un como mínimo 200GB de espacio libre en disco, que conectes tu cable ethernet al portátil y te vayas por un café porque son 8M de documentos o 54GB que se irán almacenando en $HOME/.cache/huggingface/datasets/openwebtext/plain_text/1.0.0/…
+
+```python
+dataset = load_dataset("openwebtext")
+print("---Todos los subconjuntos y features---", dataset)
+```
+
+Con la función ***train_test_split***() dividimos nuestro dataset en dos partes, uno llamado ‘train’ y otro ‘test’, el subconjunto ‘test’ equivale al 0.05% de OWT
+
+```python
+split_dataset = dataset["train"].train_test_split(
+test_size=0.0005,
+seed=2357,
+shuffle=True
+)
+```
+
+El contenido de la variable split_dataset sería este:
+
+```python
+DatasetDict({
+    train: Dataset({
+       features: ['text'],
+        num_rows: 8009762
+    })
+    test: Dataset({
+        features: ['text'],
+        num_rows: 4007
+    })
+})
+```
+
+Ahora, lo que se busca es tener un subconjunto de validación (’val’), para ello usamos la función ***pop()*** para transferir el contenido del subconjunto ‘test’ a ‘val’, y luego eliminar ‘test’ del conjunto original.
+
+```python
+split_dataset['val'] = split_dataset.pop('test') # renombramos test como val
+```
+
+Finalmente el dataset de OWT se quedaría así:
+
+```python
+# mostramos en consola ambos dataset train y val
+print(split_dataset)
+
+El resultado de este print a split_dataset será: 
+DatasetDict({
+    train: Dataset({
+        features: ['text'],
+        num_rows: 8009762
+    })
+    val: Dataset({
+        features: ['text'],
+        num_rows: 4007
+    })
+})
+```
+
+En el siguiente segmento se inicia el proceso de ***tokenizado*** del dataset, pero primero se instancia la variable ‘***enc***’ con el valor de codificación ‘***gpt2***’
+
+```python
+enc = tiktoken.get_encoding('gpt2')
+
+def process(example):
+    # enconde_ordinary ignora cualquier token especial
+    ids = enc.encode_ordinary(example['text']) 
+    # al final del texto agregamos el token '50256 o <|endoftext|>, para gpt2 bpe
+    ids.append(enc.eot_token)
+    # creamos un diccionario 'out' con los elementos id y len
+    out = {'ids': ids, 'len': len(ids)} 
+    return out
+```
+
+> 💡 Para ilustrar que hace la función ***process()** les dejo este ejemplo:*
+
+```python
+# Declarar una variable 'text' con una oración/sentence
+text= "Hola, me llamo Alexander y tú como te llamas?"
+ids= enc.encode_ordinary(text) # tokenizamos la variable
+# Estos serían los tokens que devuelve encode_ordinary
+print(ids) # [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30]
+
+# llamar a la función append() para agregar EOT token (50256 o <|endoftext|>)
+ids.append(enc.eot_token)
+print(ids) # [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30, **50256**]
+
+# Llamar a la función decode() para descrifar ids
+print(enc.decode(ids))  #Hola, me llamo Alexander y tú como te llamas?<|endoftext|>
+
+```
+
+¿Recordarás que al principio mencionamos a la función map() ? Pues aquí la utilizamos con split_dataset y le pasamos los argumentos process(), remove_columns, desc y num_proc:
+
+```python
+# Aqui aplicamos la funcion process al dataset split_dataset creado lineas arriba
+tokenized = split_dataset.map(
+    process, # Funcion de tokenizado
+    remove_columns=['text'], # Luego de aplicar la función al dataset se elimina la columna text
+    desc="tokenizing the splits", # Descripción que se mostrará en la barra de progreso
+    num_proc=num_proc # Número de procesos para generar un dataset local
+)
+
+# Este output sería un ejemplo ilustrativo:
+#tokenizing the splits #0: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 392.79ex/s]
+#tokenizing the splits #6: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 386.31ex/s]
+#tokenizing the splits #5: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 377.24ex/s]
+#tokenizing the splits #7: 100%|█████████████████████████████████████████████████████████████████████████████| 500/500 [00:01<00:00, 372.65ex/s]
+#tokenizing the splits #3: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 376.59ex/s]
+#tokenizing the splits #4: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 364.67ex/s]
+#tokenizing the splits #2: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 362.56ex/s]
+#tokenizing the splits #1: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01<00:00, 360.43ex/s]
+```
+
+En el segmento de abajo vemos que ya no existe la columna ‘text’:
+
+```python
+print(tokenized)
+
+train: Dataset({
+        features: ['ids', 'len'],
+        num_rows: 8009762
+    })
+    val: Dataset({
+        features: ['ids', 'len'],
+        num_rows: 4007
+    })
+})
+```
+
+Para terminar,  juntamos todos los ids de cada dataset en un único archivo, que luego podremos usar para el training:
+
+```python
+for split, dset in tokenized.items():
+    arr_len = np.sum(dset['len']) # calculamos el tamaño total de la matriz
+    filename = f'{split}.bin' # Acá usamos formatspec para crear de manera dinámica un archivo train.bin y val.bin
+    dtype = np.uint16 # Definimos este tipo np.uint16 para números enteros sin signo en el rango de 0 a 65535 (2^16 - 1) y como el valor máximo del token EOT es 50256 y es < 2^16 - 1 
+    arr = np.memmap(filename, dtype=dtype, mode='w+', shape=(arr_len,)) # En la variable arr es del tipo memoria mapeada, esto es util porque se trabaja con archivos grandes 
+
+    print(f"writing {filename}...") # Esto indica el nombre del archivo en el que se está escribiendo la matriz por ejemplo train.bin o val.bin
+    idx = 0 # Establecemos el valor 0 para iniciar
+    for example in tqdm(dset): # Con tqdm tendremos una barra de progreso según vayamos iterando sobre cada elemento de dset
+        arr[idx : idx + example['len']] = example['ids'] # Esto es slicing para asignar los valores de example['ids'] a una sección de la matriz 'arr'
+        idx += example['len'] # sumamos el valor actual de example['len']
+    arr.flush() # por último usamos la función flush() para vaciar el buffer, es decir escribiremos físicamente todos los datos en el disco duro.
+```
+
+Al final tendremos :
+
+> train.bin de ~17GB y val.bin ~8.5MB
+>
+> train tiene ~9B tokens (9,035,582,198)
+>
+> val tiene ~4M tokens (4,434,897)
+>
+>Luego leeremos los archivos .bin con numpy de la siguiente manera:
+```python
+m = np.memmap('train.bin', dtype=np.uint16, mode='r')
+```
