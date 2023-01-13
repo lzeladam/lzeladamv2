@@ -1,6 +1,6 @@
 ---
 title: "About"
-image: profile.jpg
+image: profile.jpeg
 about:
   template: jolla
   links:
@@ -16,8 +16,7 @@ about:
 
 ---
 
-Hola! Me he creado este sitio porque estoy ávido de compartir y generar contenido con la comunidad de habla hispana mí viaje en la especilidad de Deep Learning. Actualmente trabajo como Cloud Engineer, pero estoy muy seguro de encontrar una forma de integrar estas dos especialidades.
- 
-Es curioso y divertido que haya llegado hasta aquí, crearme un blog técnico con [quarto](https://quarto.org/docs/publishing/github-pages.html) habiendo tantas plataformas de blogging, por mis dos principales pasatiempos: los libros y las películas de "Ciencia Ficción".
+Hola! He creado este sitio para compartir mi viaje en el campo del Deep Learning con la comunidad de habla hispana. Soy un DevOps Engineer y busco integrar mis intereses en estas dos especialidades. Me emociona tener mi propio blog técnico, gracias a herramientas de la comunidad Open Source como Fastpages (Ahora Quarto) y Github. 
 
-Gracias a Fastpages, Github y en general a la comunidad Open Source por las herramientas!!!
+Además, me encanta leer libros de divulgación científica y ciencia ficción, así como trabajar en side projects. Me apasiona aprender constantemente y estar al día con las últimas tendencias en tecnología.
+

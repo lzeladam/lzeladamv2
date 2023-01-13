@@ -10,9 +10,14 @@ website:
         href: https://github.com/lzeladam
       - icon: twitter
         href: https://twitter.com/lzeladam
+      - icon: linkedin
+        href: https://www.linkedin.com/in/lzeladam/
+  page-footer: "Hecho por Alexander Zelada y Quarto"
 format:
   html:
-    theme: flatly
+    theme:
+      light: flatly
+      dark: darkly
     css: styles.css
 
 
