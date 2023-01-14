@@ -3,7 +3,7 @@ title: "Unlocking High-Accuracy Differentially Private Image Classification thro
 author: "Alexander Zelada"
 date: "2022-11-20"
 categories: [Privacy, Paper, Privacy-preserving, DeepMind]
-image: "Bienvenida.png"
+image: "deepmind.jpeg"
 ---
 >(DP-SGD), el método de entrenamiento de DP más popular para el aprendizaje profundo, realiza esta protección mediante la inyección de ruido durante el entrenamiento.
 

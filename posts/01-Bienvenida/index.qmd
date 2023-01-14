@@ -3,7 +3,7 @@ title: "Empezando a estudiar Inteligencia Artificial"
 author: "Alexander Zelada"
 date: "2020-08-16"
 categories: [DeepLearning, InteligenciaArtificial]
-image: automobile.png
+image: journey.jpeg
 ---
 
 >Hace unos años cuando decidí estudiar Inteligencia Artificial no sabía por dónde empezar. Recordaba muy poco de álgebra lineal, cálculo y estadística.

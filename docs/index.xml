@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Deep Learning y Privacidad</title>
+<link>https://lzeladam.com/index.html</link>
+<atom:link href="https://lzeladam.com/index.xml" rel="self" type="application/rss+xml"/>
+<description>Este es mi blog personal.</description>
+<generator>quarto-1.1.251</generator>
+<lastBuildDate>Fri, 06 Jan 2023 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>Desglosando el código de prepare.py del nanoGPT - Parte 1</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/08-Desglosando-prepare.py-del-proyecto-nanoGPT-Parte1/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>GPT-2, fue entrenado simplemente para predecir la siguiente palabra en 40GB de texto de internet</p>
+</blockquote>
+<p>Hace unos días <strong><a href="https://karpathy.ai/">Andrej Karphaty</a></strong> publicó el proyecto <a href="https://github.com/karpathy/nanoGPT"><strong>nanoGPT</strong></a>, así que intenté reproducirlo en mi portátil. Sin embargo, durante el proceso de replicación me fallaron muchas cosas. Después de leer el código, me di cuenta de que tenía muchas lagunas conceptuales. Por lo tanto, decidí desglosar la primera parte del proyecto que consiste en descargar el dataset, tokenizarlo, hacer un memmap y generar los binarios train.bin y val.bin.</p>
+<blockquote class="blockquote">
+<p>💡 Importante:</p>
+</blockquote>
+<blockquote class="blockquote">
+<p>Descartar replicar este proyecto en Windows, porque <strong><em>Pytorch 2.0</em></strong> no tiene soporte para este SO y si puedes también evita WSL.</p>
+<p><a href="https://github.com/pytorch/pytorch/issues/90768">https://github.com/pytorch/pytorch/issues/90768</a></p>
+<p>Instalar Python 3.9 como mínimo y en caso no tengas una GPU te recomiendo <a href="https://lambdalabs.com/"><strong>LambdaLabs</strong></a></p>
+</blockquote>
+<p><strong>Empecemos</strong></p>
+<p>En la versión original de <a href="http://prepare.py">prepare.py</a> se importan las librerías <em>tqdm, numpy, tiktoken</em> y <em>datasets</em>. Sin embargo, yo en mi proceso de fortalecer los conceptos, importé estas dos funciones <em>load_dataset_builder()</em> y <em>get_dataset_split_names()</em> de manera adicional.</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;">from</span> tqdm <span class="im" style="color: #00769E;">import</span> tqdm</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;">import</span> numpy <span class="im" style="color: #00769E;">as</span> np</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;">import</span> tiktoken</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;">from</span> datasets <span class="im" style="color: #00769E;">import</span> load_dataset, load_dataset_builder, get_dataset_split_names</span></code></pre></div>
+<blockquote class="blockquote">
+<p>Librerías:</p>
+<p>🗃️ <strong>tqdm</strong> : se usa para mostrar una barra de progreso durante iteraciones largas</p>
+<p>🗃️ <strong>numpy</strong>: servirá para trabajar con las matrices de forma eficiente</p>
+<p>🗃️ <strong>tiktoken</strong>: es el tokenizador opensource más rápido y lo liberó OpenAI</p>
+<p>🗃️ <strong>datasets</strong>: es la librería creada por Hugging Face que facilita el acceso a datasets populares de una manera sencilla</p>
+</blockquote>
+<p>Más adelante se aplicará la función <strong><em>‘map()’</em></strong> al dataset y se le proporcionará el parámetro ‘<strong>num_proc</strong>’ para definir el número de procesos que se ejecutarán en simultáneo.</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;"># un buen numero a usar es aproximadamente = CPU cores // 2</span></span>
+<span id="cb2-2">num_proc <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">8</span></span></code></pre></div>
+<p>Antes de descargar y empezar a manipular el dataset de <strong><a href="https://huggingface.co/datasets/openwebtext">openwebtext</a></strong>, es importante inspeccionarlo y obtener información sobre este dataset, como su descripción, características, size, etc. Para hacer esto, se usa la función ’<strong><em>load_dataset_builder()’</em></strong></p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">ds_builder <span class="op" style="color: #5E5E5E;">=</span> load_dataset_builder(<span class="st" style="color: #20794D;">"openwebtext"</span>)</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"Descripción de OWT: </span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>, ds_builder.info.description, <span class="st" style="color: #20794D;">"</span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>)</span>
+<span id="cb3-4"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"Features de OWT: </span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>, ds_builder.info.features, <span class="st" style="color: #20794D;">"</span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>)</span>
+<span id="cb3-5"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"Cita de OWT: </span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>, ds_builder.info.citation, <span class="st" style="color: #20794D;">"</span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>)</span>
+<span id="cb3-6"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"Sitio Web de OWT: </span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>, ds_builder.info.homepage, <span class="st" style="color: #20794D;">"</span><span class="ch" style="color: #20794D;">\n</span><span class="st" style="color: #20794D;">"</span>)</span></code></pre></div>
+<blockquote class="blockquote">
+<p>A partir de ahora nos referiremos a OpenWebText como OWT.</p>
+</blockquote>
+<p>Para listar los subconjuntos [’train’, ‘validation’, ‘test’] de OWT usamos la función ‘<strong>get_dataset_split_names()</strong>’. <em>Este dataset por defecto sólo contiene ‘train’</em>.</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"--Subconjuntos--"</span>, get_dataset_split_names(<span class="st" style="color: #20794D;">"openwebtext"</span>))</span></code></pre></div>
+<p>Luego de haber inspeccionado y entendido más sobre el dataset de OWT, procedemos a descargarlo, este proceso se hace con la función ’<strong>load_dataset()’</strong> y acá te recomiendo que tengas un como mínimo 200GB de espacio libre en disco, que conectes tu cable ethernet al portátil y te vayas por un café porque son 8M de documentos o 54GB que se irán almacenando en $HOME/.cache/huggingface/datasets/openwebtext/plain_text/1.0.0/…</p>
+<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">dataset <span class="op" style="color: #5E5E5E;">=</span> load_dataset(<span class="st" style="color: #20794D;">"openwebtext"</span>)</span>
+<span id="cb5-2"><span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"---Todos los subconjuntos y features---"</span>, dataset)</span></code></pre></div>
+<p>Con la función <strong><em>train_test_split</em></strong>() dividimos nuestro dataset en dos partes, uno llamado ‘train’ y otro ‘test’, el subconjunto ‘test’ equivale al 0.05% de OWT</p>
+<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">split_dataset <span class="op" style="color: #5E5E5E;">=</span> dataset[<span class="st" style="color: #20794D;">"train"</span>].train_test_split(</span>
+<span id="cb6-2">test_size<span class="op" style="color: #5E5E5E;">=</span><span class="fl" style="color: #AD0000;">0.0005</span>,</span>
+<span id="cb6-3">seed<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">2357</span>,</span>
+<span id="cb6-4">shuffle<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span></span>
+<span id="cb6-5">)</span></code></pre></div>
+<p>El contenido de la variable split_dataset sería este:</p>
+<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">DatasetDict({</span>
+<span id="cb7-2">    train: Dataset({</span>
+<span id="cb7-3">       features: [<span class="st" style="color: #20794D;">'text'</span>],</span>
+<span id="cb7-4">        num_rows: <span class="dv" style="color: #AD0000;">8009762</span></span>
+<span id="cb7-5">    })</span>
+<span id="cb7-6">    test: Dataset({</span>
+<span id="cb7-7">        features: [<span class="st" style="color: #20794D;">'text'</span>],</span>
+<span id="cb7-8">        num_rows: <span class="dv" style="color: #AD0000;">4007</span></span>
+<span id="cb7-9">    })</span>
+<span id="cb7-10">})</span></code></pre></div>
+<p>Ahora, lo que se busca es tener un subconjunto de validación (’val’), para ello usamos la función <strong><em>pop()</em></strong> para transferir el contenido del subconjunto ‘test’ a ‘val’, y luego eliminar ‘test’ del conjunto original.</p>
+<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">split_dataset[<span class="st" style="color: #20794D;">'val'</span>] <span class="op" style="color: #5E5E5E;">=</span> split_dataset.pop(<span class="st" style="color: #20794D;">'test'</span>) <span class="co" style="color: #5E5E5E;"># renombramos test como val</span></span></code></pre></div>
+<p>Finalmente el dataset de OWT se quedaría así:</p>
+<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="co" style="color: #5E5E5E;"># mostramos en consola ambos dataset train y val</span></span>
+<span id="cb9-2"><span class="bu" style="color: null;">print</span>(split_dataset)</span>
+<span id="cb9-3"></span>
+<span id="cb9-4">El resultado de este <span class="bu" style="color: null;">print</span> a split_dataset será: </span>
+<span id="cb9-5">DatasetDict({</span>
+<span id="cb9-6">    train: Dataset({</span>
+<span id="cb9-7">        features: [<span class="st" style="color: #20794D;">'text'</span>],</span>
+<span id="cb9-8">        num_rows: <span class="dv" style="color: #AD0000;">8009762</span></span>
+<span id="cb9-9">    })</span>
+<span id="cb9-10">    val: Dataset({</span>
+<span id="cb9-11">        features: [<span class="st" style="color: #20794D;">'text'</span>],</span>
+<span id="cb9-12">        num_rows: <span class="dv" style="color: #AD0000;">4007</span></span>
+<span id="cb9-13">    })</span>
+<span id="cb9-14">})</span></code></pre></div>
+<p>En el siguiente segmento se inicia el proceso de <strong><em>tokenizado</em></strong> del dataset, pero primero se instancia la variable ‘<strong><em>enc</em></strong>’ con el valor de codificación ‘<strong><em>gpt2</em></strong>’</p>
+<div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">enc <span class="op" style="color: #5E5E5E;">=</span> tiktoken.get_encoding(<span class="st" style="color: #20794D;">'gpt2'</span>)</span>
+<span id="cb10-2"></span>
+<span id="cb10-3"><span class="kw" style="color: #003B4F;">def</span> process(example):</span>
+<span id="cb10-4">    <span class="co" style="color: #5E5E5E;"># enconde_ordinary ignora cualquier token especial</span></span>
+<span id="cb10-5">    ids <span class="op" style="color: #5E5E5E;">=</span> enc.encode_ordinary(example[<span class="st" style="color: #20794D;">'text'</span>]) </span>
+<span id="cb10-6">    <span class="co" style="color: #5E5E5E;"># al final del texto agregamos el token '50256 o &lt;|endoftext|&gt;, para gpt2 bpe</span></span>
+<span id="cb10-7">    ids.append(enc.eot_token)</span>
+<span id="cb10-8">    <span class="co" style="color: #5E5E5E;"># creamos un diccionario 'out' con los elementos id y len</span></span>
+<span id="cb10-9">    out <span class="op" style="color: #5E5E5E;">=</span> {<span class="st" style="color: #20794D;">'ids'</span>: ids, <span class="st" style="color: #20794D;">'len'</span>: <span class="bu" style="color: null;">len</span>(ids)} </span>
+<span id="cb10-10">    <span class="cf" style="color: #003B4F;">return</span> out</span></code></pre></div>
+<blockquote class="blockquote">
+<p>💡 Para ilustrar que hace la función <em><strong>process()</strong> les dejo este ejemplo:</em></p>
+</blockquote>
+<div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="co" style="color: #5E5E5E;"># Declarar una variable 'text' con una oración/sentence</span></span>
+<span id="cb11-2">text<span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">"Hola, me llamo Alexander y tú como te llamas?"</span></span>
+<span id="cb11-3">ids<span class="op" style="color: #5E5E5E;">=</span> enc.encode_ordinary(text) <span class="co" style="color: #5E5E5E;"># tokenizamos la variable</span></span>
+<span id="cb11-4"><span class="co" style="color: #5E5E5E;"># Estos serían los tokens que devuelve encode_ordinary</span></span>
+<span id="cb11-5"><span class="bu" style="color: null;">print</span>(ids) <span class="co" style="color: #5E5E5E;"># [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30]</span></span>
+<span id="cb11-6"></span>
+<span id="cb11-7"><span class="co" style="color: #5E5E5E;"># llamar a la función append() para agregar EOT token (50256 o &lt;|endoftext|&gt;)</span></span>
+<span id="cb11-8">ids.append(enc.eot_token)</span>
+<span id="cb11-9"><span class="bu" style="color: null;">print</span>(ids) <span class="co" style="color: #5E5E5E;"># [39, 5708, 11, 502, 32660, 18811, 10009, 331, 256, 21356, 401, 78, 573, 32660, 17485, 30, **50256**]</span></span>
+<span id="cb11-10"></span>
+<span id="cb11-11"><span class="co" style="color: #5E5E5E;"># Llamar a la función decode() para descrifar ids</span></span>
+<span id="cb11-12"><span class="bu" style="color: null;">print</span>(enc.decode(ids))  <span class="co" style="color: #5E5E5E;">#Hola, me llamo Alexander y tú como te llamas?&lt;|endoftext|&gt;</span></span></code></pre></div>
+<p>¿Recordarás que al principio mencionamos a la función map() ? Pues aquí la utilizamos con split_dataset y le pasamos los argumentos process(), remove_columns, desc y num_proc:</p>
+<div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="co" style="color: #5E5E5E;"># Aqui aplicamos la funcion process al dataset split_dataset creado lineas arriba</span></span>
+<span id="cb12-2">tokenized <span class="op" style="color: #5E5E5E;">=</span> split_dataset.<span class="bu" style="color: null;">map</span>(</span>
+<span id="cb12-3">    process, <span class="co" style="color: #5E5E5E;"># Funcion de tokenizado</span></span>
+<span id="cb12-4">    remove_columns<span class="op" style="color: #5E5E5E;">=</span>[<span class="st" style="color: #20794D;">'text'</span>], <span class="co" style="color: #5E5E5E;"># Luego de aplicar la función al dataset se elimina la columna text</span></span>
+<span id="cb12-5">    desc<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"tokenizing the splits"</span>, <span class="co" style="color: #5E5E5E;"># Descripción que se mostrará en la barra de progreso</span></span>
+<span id="cb12-6">    num_proc<span class="op" style="color: #5E5E5E;">=</span>num_proc <span class="co" style="color: #5E5E5E;"># Número de procesos para generar un dataset local</span></span>
+<span id="cb12-7">)</span>
+<span id="cb12-8"></span>
+<span id="cb12-9"><span class="co" style="color: #5E5E5E;"># Este output sería un ejemplo ilustrativo:</span></span>
+<span id="cb12-10"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #0: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 392.79ex/s]</span></span>
+<span id="cb12-11"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #6: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 386.31ex/s]</span></span>
+<span id="cb12-12"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #5: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 377.24ex/s]</span></span>
+<span id="cb12-13"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #7: 100%|█████████████████████████████████████████████████████████████████████████████| 500/500 [00:01&lt;00:00, 372.65ex/s]</span></span>
+<span id="cb12-14"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #3: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 376.59ex/s]</span></span>
+<span id="cb12-15"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #4: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 364.67ex/s]</span></span>
+<span id="cb12-16"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #2: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 362.56ex/s]</span></span>
+<span id="cb12-17"><span class="co" style="color: #5E5E5E;">#tokenizing the splits #1: 100%|█████████████████████████████████████████████████████████████████████████████| 501/501 [00:01&lt;00:00, 360.43ex/s]</span></span></code></pre></div>
+<p>En el segmento de abajo vemos que ya no existe la columna ‘text’:</p>
+<div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="bu" style="color: null;">print</span>(tokenized)</span>
+<span id="cb13-2"></span>
+<span id="cb13-3">train: Dataset({</span>
+<span id="cb13-4">        features: [<span class="st" style="color: #20794D;">'ids'</span>, <span class="st" style="color: #20794D;">'len'</span>],</span>
+<span id="cb13-5">        num_rows: <span class="dv" style="color: #AD0000;">8009762</span></span>
+<span id="cb13-6">    })</span>
+<span id="cb13-7">    val: Dataset({</span>
+<span id="cb13-8">        features: [<span class="st" style="color: #20794D;">'ids'</span>, <span class="st" style="color: #20794D;">'len'</span>],</span>
+<span id="cb13-9">        num_rows: <span class="dv" style="color: #AD0000;">4007</span></span>
+<span id="cb13-10">    })</span>
+<span id="cb13-11">})</span></code></pre></div>
+<p>Para terminar, juntamos todos los ids de cada dataset en un único archivo, que luego podremos usar para el training:</p>
+<div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><span class="cf" style="color: #003B4F;">for</span> split, dset <span class="kw" style="color: #003B4F;">in</span> tokenized.items():</span>
+<span id="cb14-2">    arr_len <span class="op" style="color: #5E5E5E;">=</span> np.<span class="bu" style="color: null;">sum</span>(dset[<span class="st" style="color: #20794D;">'len'</span>]) <span class="co" style="color: #5E5E5E;"># calculamos el tamaño total de la matriz</span></span>
+<span id="cb14-3">    filename <span class="op" style="color: #5E5E5E;">=</span> <span class="ss" style="color: #20794D;">f'</span><span class="sc" style="color: #5E5E5E;">{</span>split<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">.bin'</span> <span class="co" style="color: #5E5E5E;"># Acá usamos formatspec para crear de manera dinámica un archivo train.bin y val.bin</span></span>
+<span id="cb14-4">    dtype <span class="op" style="color: #5E5E5E;">=</span> np.uint16 <span class="co" style="color: #5E5E5E;"># Definimos este tipo np.uint16 para números enteros sin signo en el rango de 0 a 65535 (2^16 - 1) y como el valor máximo del token EOT es 50256 y es &lt; 2^16 - 1 </span></span>
+<span id="cb14-5">    arr <span class="op" style="color: #5E5E5E;">=</span> np.memmap(filename, dtype<span class="op" style="color: #5E5E5E;">=</span>dtype, mode<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'w+'</span>, shape<span class="op" style="color: #5E5E5E;">=</span>(arr_len,)) <span class="co" style="color: #5E5E5E;"># En la variable arr es del tipo memoria mapeada, esto es util porque se trabaja con archivos grandes </span></span>
+<span id="cb14-6"></span>
+<span id="cb14-7">    <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"writing </span><span class="sc" style="color: #5E5E5E;">{</span>filename<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">..."</span>) <span class="co" style="color: #5E5E5E;"># Esto indica el nombre del archivo en el que se está escribiendo la matriz por ejemplo train.bin o val.bin</span></span>
+<span id="cb14-8">    idx <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span> <span class="co" style="color: #5E5E5E;"># Establecemos el valor 0 para iniciar</span></span>
+<span id="cb14-9">    <span class="cf" style="color: #003B4F;">for</span> example <span class="kw" style="color: #003B4F;">in</span> tqdm(dset): <span class="co" style="color: #5E5E5E;"># Con tqdm tendremos una barra de progreso según vayamos iterando sobre cada elemento de dset</span></span>
+<span id="cb14-10">        arr[idx : idx <span class="op" style="color: #5E5E5E;">+</span> example[<span class="st" style="color: #20794D;">'len'</span>]] <span class="op" style="color: #5E5E5E;">=</span> example[<span class="st" style="color: #20794D;">'ids'</span>] <span class="co" style="color: #5E5E5E;"># Esto es slicing para asignar los valores de example['ids'] a una sección de la matriz 'arr'</span></span>
+<span id="cb14-11">        idx <span class="op" style="color: #5E5E5E;">+=</span> example[<span class="st" style="color: #20794D;">'len'</span>] <span class="co" style="color: #5E5E5E;"># sumamos el valor actual de example['len']</span></span>
+<span id="cb14-12">    arr.flush() <span class="co" style="color: #5E5E5E;"># por último usamos la función flush() para vaciar el buffer, es decir escribiremos físicamente todos los datos en el disco duro.</span></span></code></pre></div>
+<p>Al final tendremos :</p>
+<blockquote class="blockquote">
+<p>train.bin de ~17GB y val.bin ~8.5MB</p>
+<p>train tiene ~9B tokens (9,035,582,198)</p>
+<p>val tiene ~4M tokens (4,434,897)</p>
+<p>Luego leeremos los archivos .bin con numpy de la siguiente manera:</p>
+</blockquote>
+<div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">m <span class="op" style="color: #5E5E5E;">=</span> np.memmap(<span class="st" style="color: #20794D;">'train.bin'</span>, dtype<span class="op" style="color: #5E5E5E;">=</span>np.uint16, mode<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'r'</span>)</span></code></pre></div>
+
+
+
+ ]]></description>
+  <category>NLP</category>
+  <category>GPT</category>
+  <category>Pytorch</category>
+  <guid>https://lzeladam.com/posts/08-Desglosando-prepare.py-del-proyecto-nanoGPT-Parte1/index.html</guid>
+  <pubDate>Fri, 06 Jan 2023 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/08-Desglosando-prepare.py-del-proyecto-nanoGPT-Parte1/chatgpt.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Unlocking High-Accuracy Differentially Private Image Classification through Scale - Parte 2</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/07-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte2/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>(DP-SGD), el método de entrenamiento de DP más popular para el aprendizaje profundo, realiza esta protección mediante la inyección de ruido durante el entrenamiento.</p>
+</blockquote>
+<p>Voy a trabajar en la traducción del paper <a href="https://www.deepmind.com/blog/unlocking-high-accuracy-differentially-private-image-classification-through-scale">“Unlocking High-Accuracy Differentially Private Image Classification through Scale”</a>, este documento consta de 6 secciones y cada post será una de ellas. Como parte de mi aprendizaje considero importante generar información en mi lengua materna.</p>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background"><strong>2.- Background</strong></h2>
+<p><strong>2.1. Privacidad Diferencial DP</strong></p>
+<p>La privacidad diferencial es una garantía de privacidad formal que se aplica a los algoritmos de análisis de datos aleatorios. Por construcción, los algoritmos diferencialmente privados evitan que un adversario que observa el resultado de un cómputo deduzca cualquier propiedad relacionada con data points individuales en los datos de entrada utilizados durante el cómputo.</p>
+<p>La fuerza de esta garantía está controlada por dos parámetros: <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%3E0"> y <img src="https://latex.codecogs.com/png.latex?%5Cdelta%20%5Cin%20%5B0,1%5D">. En términos generales, <img src="https://latex.codecogs.com/png.latex?%5Cepsilon"> limita la relación logarítmica de verosimilitud de cualquier resultado particular que se puede obtener al ejecutar el algoritmo en dos conjuntos de datos que difieren en un solo punto de datos, y <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> es una pequeña probabilidad que limita la aparición de resultados poco frecuentes que violan este límite. La garantía de privacidad se fortalece a medida que ambos parámetros se reducen. Una regla general estándar establece que, para obtener una privacidad significativa, <img src="https://latex.codecogs.com/png.latex?%5Cepsilon"> debe ser una constante pequeña mientras que <img src="https://latex.codecogs.com/png.latex?%5Cdelta"> debe ser menor que <img src="https://latex.codecogs.com/png.latex?1/N">, donde <img src="https://latex.codecogs.com/png.latex?N"> es el tamaño del conjunto de datos de entrada. Más formalmente, tenemos lo siguiente.</p>
+<p><strong>Definición 2.1</strong> (Differential Privacy (<a href="https://people.csail.mit.edu/asmith/PS/sensitivity-tcc-final.pdf">Dwork et al., 2006</a>)). Sea <img src="https://latex.codecogs.com/png.latex?A:D%20%5Clongmapsto%20S"> un algoritmo aleatorio, y sea : <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%3E0"> y <img src="https://latex.codecogs.com/png.latex?%5Cdelta%20%5Cin%20%5B0,1%5D">. Decimos que <img src="https://latex.codecogs.com/png.latex?A"> es <img src="https://latex.codecogs.com/png.latex?(%5Cepsilon,%20%5Cdelta)-DP"> si para dos conjuntos de datos vecinos cualesquiera <img src="https://latex.codecogs.com/png.latex?D,%20D%7B'%7D%20%5Cin%20D"> difieren en un solo elemento, tenemos que:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Bequation%7D%20%5Clor%20S%20%5Csubset%20S,%20P%5BA(D)%5Cin%20S%5D%20%5Cleq%20exp(%5Cepsilon)P%5BA(D%7B'%7D)%5Cin%20S%5D%20+%20%5Cdelta%20%20%5Cend%7Bequation%7D%0A"></p>
+<p>La protección de la privacidad que brinda DP se mantiene bajo un modelo de amenaza extremadamente fuerte: las inferencias sobre las personas están protegidas incluso frente a un adversario que tiene pleno conocimiento del algoritmo DP, poder computacional ilimitado y <em>arbitrary side knowledge</em> sobre los datos de entrada. Además, DP satisface una serie de propiedades atractivas desde el punto de vista del diseño de algoritmos, incluida la conservación bajo procesamiento posterior y una degradación suave con múltiple accesos a los mismos datos. Estas propiedades se explotan en la construcción de algoritmos DP complejos basados en la combinación de pequeños bloques de construcción que inyectan ruido cuidadosamente calibrado en las operaciones que acceden a los datos. La magnitud del ruido requerido para satisfacer la garantía de privacidad aumenta con la fuerza de los parámetros de privacidad, lo que lleva a una compensación inevitable entre utilidad y privacidad, como lo ilustra la Ley Fundamental de Recuperación de Información <a href="https://www.cis.upenn.edu/~aaroth/Papers/privacybook.pdf">(Dwork and Roth, 2014)</a>.</p>
+<p>Juntos, la solidez de la garantía formal que brinda y la variedad de herramientas disponibles para la construcción de algoritmos de DP han llevado a la creciente adopción de DP como un estándar de oro para el aprendizaje automático que preserva la privacidad. Para problemas de <em>convex learning</em>, existe una variedad de métodos para obtener algoritmos diferencialmente privados, incluida la perturbación de salida <a href="https://www.jmlr.org/papers/volume12/chaudhuri11a/chaudhuri11a.pdf">(Chaudhuri et al., 2011</a>; <a href="https://arxiv.org/pdf/1606.04722.pdf">Wu et al., 2017</a>), la perturbación objetiva (<a href="https://www.jmlr.org/papers/volume12/chaudhuri11a/chaudhuri11a.pdf">Chaudhuri et al., 2011</a>; <a href="http://proceedings.mlr.press/v23/kifer12/kifer12.pdf">Kifer et al., 2012</a>) y la perturbación de gradiente (<a href="https://arxiv.org/pdf/1405.7085.pdf">Bassily et al., 2014</a>; <a href="https://cseweb.ucsd.edu/~kamalika/pubs/scs13.pdf">Song et al., 2013</a>) .</p>
+<p>La naturaleza de los problemas convexos permite el análisis formal de la utilidad de privacidad que ofrecen estos algoritmos, y en la actualidad existen grandes clases de problemas para los cuales se conocen algoritmos que logran (casi) equilibrios óptimos de utilidad de privacidad (<a href="https://arxiv.org/pdf/2103.01516.pdf">Asi et al., 2021</a>; <a href="https://arxiv.org/pdf/1405.7085.pdf">Bassily et al., 2014</a>; <a href="https://arxiv.org/pdf/2005.04763.pdf">Feldman et al., 2020</a>; <a href="https://proceedings.mlr.press/v130/song21a.html">Song et al., 2021</a>; <a href="https://papers.nips.cc/paper/2015/file/52d080a3e172c33fd6886a37e7288491-Paper.pdf">Talwar et al., 2015</a>). Para los problemas de aprendizaje no convexos, la gama de algoritmos disponibles es más limitada y las ventajas y desventajas de la privacidad y la utilidad son más difíciles de analizar teóricamente. No obstante, para tales problemas existen dos familias de algoritmos que han demostrado lograr compensaciones razonables de privacidad-utilidad-cómputo en la práctica; perturbación de gradiente aplicada a optimizadores estándar como SGD (<a href="https://arxiv.org/pdf/1607.00133.pdf">Abadi et al., 2016</a>), y agregación privada de <em>teacher ensembles (<a href="https://arxiv.org/pdf/1802.08908.pdf">Papernot et al., 2018</a>).</em> En este trabajo nos centramos en el primero, que es el más utilizado.</p>
+<p><strong>2.2.</strong> <strong>Descenso de gradiente estocástico diferencialmente privado (DP-SGD)</strong></p>
+<p>En este trabajo, suponemos que el algoritmo diferencialmente privado A, es un algoritmo de aprendizaje que mapea un conjunto de datos de entrenamiento: <img src="https://latex.codecogs.com/png.latex?D%20=%20%5Clbrace(x_i,%20y_i)%5Crbrace_%7B1%5Cleq%20i%5Cleq%20N%7D"> a un vector de parámetros de la red neuronal aprendida <img src="https://latex.codecogs.com/png.latex?w%20%5Cin%20S%20=%20R%5E%7Bp%7D">. Sea <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BL%7D(w,x,y)"> el objetivo de aprendizaje (por ejemplo, la pérdida de entropía cruzada), dados los parámetros del modelo <img src="https://latex.codecogs.com/png.latex?w">, la entrada ejemplo <img src="https://latex.codecogs.com/png.latex?x"> y la etiqueta <img src="https://latex.codecogs.com/png.latex?y">. Por comodidad, utilizamos la notación abreviada <img src="https://latex.codecogs.com/png.latex?l_i(w)%20=%20%5Cmathcal%7BL%7D(w,x_i,y_i)">.</p>
+<p>En la configuración non-private, una actualización de parámetros utilizando el Descenso de Gradiente Estocástico (SGD) en la iteración <img src="https://latex.codecogs.com/png.latex?t"> extrae <img src="https://latex.codecogs.com/png.latex?B"> ejemplos al azar del conjuntos de datos, y realiza una actualización de la forma:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aw%5E%7B(t+1)%7D=%20w%5E%7B(t)%7D%20-%20%5Ceta_%7Bt%7D%5Cfrac%7B1%7D%7BB%7D%20%5Csum_%7Bi%20%5Cin%20%5Cbeta_t%7D%5Cnabla%20l_i(w%5E%7B(t)%7D),%0A"></p>
+<p>Donde <img src="https://latex.codecogs.com/png.latex?%5Ceta_t"> es el step-size para una actualización <img src="https://latex.codecogs.com/png.latex?t%5E%7Bth%7D">, <img src="https://latex.codecogs.com/png.latex?%5Cnabla"> denota el operador de gradiente, y <img src="https://latex.codecogs.com/png.latex?B_t"> representa el conjunto de ejemplos muestreados en la iteración <img src="https://latex.codecogs.com/png.latex?t"> con <img src="https://latex.codecogs.com/png.latex?%7CB_t%7C%20=%20B">. Para que este algoritmo sea diferencialmente privado, aplicamos las siguientes modificaciones. En primer lugar, el gradiente de cada ejemplo del mini-batch es clipped a una norma máxima <img src="https://latex.codecogs.com/png.latex?C">, y en segundo lugar, se añade ruido gaussiano con desviación estándar proporcional a <img src="https://latex.codecogs.com/png.latex?C"> se añade a la media de los grandientes clipped.</p>
+<p>Sea</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0Aclip_x:v%5Cin%20R%5E%7Bp%7D%5Clongmapsto%20min%5Clbrace%7B1,%5Cfrac%7Bc%7D%7B%7C%7Cv%7C%7C_2%7D%5Crbrace%7D.v%5Cin%20R%5E%7Bp%7D%0A"></p>
+<p>denote la función de clipping que reescala su entrada para que la salida tenga una norma máxima <img src="https://latex.codecogs.com/png.latex?l_2"> de <img src="https://latex.codecogs.com/png.latex?C">. El nuevo step de actualización es:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Bequation%7D%20%20w%5E%7B(t+1)%7D=%20w%5E%7B(t)%7D%20-%5Ceta_%7Bt%7D%20%5C%7B%5Cfrac%7B1%7D%7BB%7D%5Csum_%7Bi%20%5Cin%20%5Cbeta_t%7Dclip_c%5Cleft(%5Cnabla%20l_i(w%5E%7B(t)%7D)%5Cright)%20+%20%20%5Cfrac%7B%5Csigma%20C%7D%7BB%7D%5Cxi%5C%7D,%20%5Cend%7Bequation%7D%0A"></p>
+<p>Donde <img src="https://latex.codecogs.com/png.latex?%5Cxi%20%5Csim%20N(0,I_p)"> es una variable aleatoria gaussiana estándar de <img src="https://latex.codecogs.com/png.latex?p"> dimensiones y <img src="https://latex.codecogs.com/png.latex?%5Csigma"> especifica la desviación estándar del ruido añadido. El algoritmo resultante se llama <strong><em>Differentially Private-Stochastic Gradient Descent (DP-SGD)</em></strong> (<a href="https://arxiv.org/pdf/1607.00133.pdf">Abadi et al., 2016</a>). Intuitivamente, realizar una actualización del modelo utilizando la ecuación proporciona privacidad diferencial porque la adición de ruido gaussiano con desviación estándar proporcional a <img src="https://latex.codecogs.com/png.latex?C"> es suficiente para enmascarar la contribución de cualquier ejemplo individual cuyo gradiente recortado tenga una norma menor o igual a <img src="https://latex.codecogs.com/png.latex?C">. Aunque utilizamos el SGD privatizado como nuestro optimizador a lo largo de este trabajo, también se puede utilizar un método de privatización similar en combinación con otros algoritmos de optimización de primer orden, como SGD con momentum o Adam (<a href="https://arxiv.org/pdf/1812.06210.pdf">McMahan et al., 2018a</a>).</p>
+<p>A lo largo de este trabajo utilizamos una versión modificada de DP-SGD en la que el gradiente privatizado está normalizado por <img src="https://latex.codecogs.com/png.latex?C">:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%0A%5Cbegin%7Bequation%7D%20w%5E%7B(t+1)%7D=%20w%5E%7B(t)%7D%20-%5Ceta_%7Bt%7D%20%5C%7B%5Cfrac%7B1%7D%7BB%7D%5Csum_%7Bi%20%5Cin%20%5Cbeta_t%7D%5Cfrac%7B1%7D%7BC%7D%20clip_c%5Cleft(%5Cnabla%20l_i(w%5E%7B(t)%7D)%5Cright)%20+%20%5Cfrac%7B%5Csigma%7D%7BB%7D%5Cxi%5C%7D,%20%5Cend%7Bequation%7D%0A"></p>
+<p>Esta es una reparametrización de la ecuación (2) en la que la tasa de aprendizaje <img src="https://latex.codecogs.com/png.latex?%5Ceta_t"> absorbe un factor de <img src="https://latex.codecogs.com/png.latex?C">. Esto no tiene ningún efecto sobre las garantías de privacidad, pero asegura que la norma de clipping no influya en la escala de la actualización, lo que simplifica el ajuste de los hiperparámetros. Tenga en cuenta que para preservar las garantías de DP, debemos dividir por <img src="https://latex.codecogs.com/png.latex?C"> después de la operación de clipping. El Apéndice A.1 proporciona más detalles sobre nuestra implementación de DP-SGD, incluida una descripción de nuestro enfoque de procesamiento por virtual batching para permitir el entrenamiento con grandes batch sizes.</p>
+<p><strong>Privacy accounting.</strong> La garantía de privacidad de DP-SGD está determinada por tres parámetros: la desviación estándar <img src="https://latex.codecogs.com/png.latex?%5Csigma">, el ratio de muestreo <img src="https://latex.codecogs.com/png.latex?q=B/N"> y el número de iteraciones de entrenamiento <img src="https://latex.codecogs.com/png.latex?T">. En la práctica, el presupuesto de privacidad <img src="https://latex.codecogs.com/png.latex?(%5Cepsilon,%20%5Cdelta)"> suele ser fijo, y estos tres hiperparámetros se eligen para proporcionar el mejor rendimiento posible dentro de este presupuesto. También puede haber restricciones prácticas adicionales (por ejemplo, el presupuesto de cálculo máximo disponible). El proceso de calibración de la privacidad se realiza mediante un contador de privacidad: un algoritmo numérico que proporciona límites superiores ajustados para el presupuesto de privacidad en función de los hiperparámetros (<a href="https://arxiv.org/pdf/1607.00133.pdf">Abadi et al., 2016</a>), que a su vez puede combinarse con rutinas de optimización numérica para optimizar un hipérparametro dado el presupuesto de privacidad y los otros dos hiperparámetros.</p>
+<p>En este trabajo utilizamos el método de contabilidad para DP-SGD propuesto por M<a href="https://arxiv.org/pdf/1908.10530.pdf">ironov et al.&nbsp;(2019)</a> e implementado en TensorFlow Privacy (<a href="https://github.com/tensorflow/privacy">Google, 2018</a>). Esta privacidad contable se basa en un análisis de “composición” a través de iteraciones, que nos permite liberar no solo el modelo final, sino también cada modelo intermedio obtenido durante el entrenamiento (bajo el mismo presupuesto de privacidad)</p>
+<p><strong>2.3. Retos de DP-SGD</strong></p>
+<p>Como describimos anteriormente, existen tres diferencias clave entre DP-SGD y SGD no privado: (1) Los gradientes por ejemplo se recortan (clipped) a una norma máxima de <img src="https://latex.codecogs.com/png.latex?l_2"> antes de promediarlos, (2) se añade ruido gaussiano a la media de los gradientes clipped, y (3) el número máximo de actualizaciones permitidas dentro del presupuesto de privacidad está limitado y depende del batch size/ruido añadido. Estas diferencias plantean una serie de retos:</p>
+<p><strong>Ajuste y regularización de hiperparámetros.</strong> El ruido agregado a la estimación del gradiente en la actualización de DP-SGD (Ecuación (3)) es una barrera significativa para la optimización eficiente, y si reducimos la escala de este ruido, el número de iteraciones de entrenamiento permitidas dentro del presupuesto de privacidad disminuye. Esta restricción altera los valores óptimos de hiperparámetros clave como el batch size/learning rate, y los valores por defecto del entrenamiento no privado pueden ser muy subóptimos (<a href="https://arxiv.org/pdf/2007.14191.pdf">Papernot et al., 2021</a>). En consecuencia, DP-SGD requiere un ajuste cuidadoso de los hiperparámetros.</p>
+<p>En nuestros experimentos también descubrimos que, al entrenar con DP-SGD, las mejoras en el training accuracy suelen traducirse directamente en una mejora de la generalización, sin necesidad de una fuerte regularización. Inspirados en esta observación, nuestra filosofía es que los métodos que reducen el número de iteraciones de entrenamiento necesarias para alcanzar un high training accuracy en el entrenamiento no privado probablemente mejoren el test accuracy alcanzado en el entrenamiento privado. De acuerdo con este enfoque, suele ser beneficioso eliminar los métodos de regularización explícitos.</p>
+<p><strong>Bias y Varianza de la actualización DP-SGD.</strong> El estimador de gradiente utilizado por DP-SGD está biased debido al uso de gradiente clipping por ejemplo y, en general, no corresponde al gradiente de ninguna función diferenciable (<a href="https://proceedings.mlr.press/v130/song21a.html">Song et al., 2021</a>). Y lo que es más importante, la norma de clipping <img src="https://latex.codecogs.com/png.latex?C"> introduce una compensación entre sesgo y varianza (<a href="https://arxiv.org/pdf/2006.15429.pdf">Chen et al., 2020</a>; <a href="https://arxiv.org/pdf/1905.03871.pdf">Thakkar et al., 2021</a>). Esto puede verse en la actualización DP-SGD que se muestra en la ecuación (3). Cuando <img src="https://latex.codecogs.com/png.latex?C"> es muy grande, <img src="https://latex.codecogs.com/png.latex?clip_c"> es la función identidad, por lo que el gradiente privatizado es un estimador unbiased del verdadero gradiente, pero el gradiente clipped <img src="https://latex.codecogs.com/png.latex?%5Cfrac%20%7B1%7D%7Bc%7D%20clip_c(%5Cnabla%20l_i(w%5E%7B(t)%7D))"> es muy pequeño en comparación con el ruido (que es independiente de <img src="https://latex.codecogs.com/png.latex?C">) - en general, la estimación del gradiente privatizado tiene un bias bajo y una varianza alta. Por el contrario, si <img src="https://latex.codecogs.com/png.latex?C"> es pequeño, la operación de clipping introduce un bias, pero el gradiente clipped <img src="https://latex.codecogs.com/png.latex?%5Cfrac%20%7B1%7D%7Bc%7D%20clip_c(%5Cnabla%20l_i(w%5E%7B(t)%7D))"> es mayor, y por lo tanto no es necesariamente pequeño en comparacion con el ruido- en general, la estimación del gradiente privatizado tiene un bias alto y una varianza baja. Tenga en cuenta que cuando <img src="https://latex.codecogs.com/png.latex?C"> es muy pequeño (más pequeño que la norma de gradiente más pequeña por ejemplo), reducir aún más <img src="https://latex.codecogs.com/png.latex?C"> no cambia <img src="https://latex.codecogs.com/png.latex?%5Cfrac%20%7B1%7D%7Bc%7D%20clip_c(%5Cnabla%20l_i(w%5E%7B(t)%7D))">, lo que indica que el bias y la varianza en la actualización se aproximan a una constante a medida que <img src="https://latex.codecogs.com/png.latex?C%20%5Clongmapsto%200">. Curiosamente, trabajos anteriores han observado que amplios rangos de la norma de clipping <img src="https://latex.codecogs.com/png.latex?C"> pueden proporcionar un rendimiento casi óptimo siempre que (i) la norma de clipping sea lo suficientemente pequeña, y (ii) el learning-rate se reescalen en consecuecia <a href="https://arxiv.org/pdf/2201.12328.pdf">(Kurakin et al., 2022</a>; <a href="https://arxiv.org/pdf/2110.05679.pdf">Li et al., 2021</a>). Esto sugiere que reducir la varianza introducida por el ruido puede ser más importante que reducir el bias introducido por el clipping.</p>
+<p><strong>Hacer que los modelos estándar funcionen.</strong> El entrenamiento diferencialmente privado ha obtenido recientemente resultados prometedores con arquitecturas estándar en NLP, tanto al entrenar un modelo BERT (<a href="https://arxiv.org/pdf/1810.04805.pdf">Devlin et al., 2018</a>) a partir de una inicialización aleatoria (<a href="https://arxiv.org/pdf/2108.01624.pdf">Anil et al., 2018</a>) como al afinar un gran modelo de lenguaje Transformer (<a href="https://arxiv.org/pdf/1706.03762.pdf">Vaswani et al., 2017</a>) a partir de un conjunto de parámetros preentrenados (<a href="https://arxiv.org/pdf/2110.05679.pdf">Li et al., 2021</a>; <a href="https://arxiv.org/pdf/2110.06500.pdf">Yu et al., 2021a</a>). Sin embargo, no se han obtenido resultados similares en visión por ordenador, y la bibliografía no ofrece recomendaciones claras sobre qué arquitecturas de modelos funcionan bien. Por ejemplo, analizando la investigación reciente sobre el entrenamiento privado para CIFAR-10, <a href="https://arxiv.org/pdf/2201.12328.pdf">Kurakin et al.&nbsp;(2022)</a>, <a href="https://arxiv.org/pdf/2007.14191.pdf">Papernot et al.&nbsp;(2021)</a> y <a href="https://arxiv.org/pdf/2110.06255.pdf">Dörmann et al.&nbsp;(2021)</a> utilizan variantes de modelos VGG poco profundos (<a href="https://arxiv.org/pdf/1409.1556.pdf">Simonyan y Zisserman, 2015</a>), mientras que <a href="https://arxiv.org/pdf/2011.11660.pdf">Tramèr y Boneh (2021)</a> utilizan ScatterNets (<a href="https://arxiv.org/pdf/1412.8659.pdf">Oyallon y Mallat, 2015</a>) para entrenar modelos lineales en características artesanales, logrando una impresionante precisión de prueba del 69,3 % con un presupuesto de privacidad ajustado de <img src="https://latex.codecogs.com/png.latex?(3,%2010%5E%7B-5%7D)-DP">. Por último, <a href="https://arxiv.org/pdf/2203.00324.pdf">Klause et al.&nbsp;(2022)</a> logran la precisión de prueba SOTA para 𝜀 ≤ 8 sin datos adicionales del 71,7% al entrenar una red residual superficial de 9 capas <a href="https://arxiv.org/pdf/1512.03385.pdf">(He et al., 2016</a>) bajo <img src="https://latex.codecogs.com/png.latex?(7,5,%2010%5E%7B-5%7D)-DP">.</p>
+<p>La norma <img src="https://latex.codecogs.com/png.latex?l_2"> del ruido añadido en la actualización DP-SGD escala proporcionalmente a la dimensión del gradiente (el número de parámetros). Esta observación ha llevado a muchos investigadores a creer que los modelos estándar sobreparametrizados funcionarán mal con DP-SGD, y en su lugar se centran en reducir la dimensión explícita o implícita de la actualización, ya sea mediante el uso de modelos pequeños/hand-crafted features (<a href="https://arxiv.org/pdf/2011.11660.pdf">Tramèr y Boneh, 2021</a>) o mediante técnicas de reducción de la dimensionalidad (<a href="https://arxiv.org/pdf/2102.12677.pdf">Yu et al., 2021b,c</a>). Otro obstáculo clave para el uso de modelos estándar para el entrenamiento privado en visión por computador ha sido que, con el fin de proporcionar garantías ajustadas de DP, DP-SGD requiere que los gradientes evaluados en diferentes ejemplos de entrenamiento sean independientes. Esto excluye el uso de cualquier método que permita la comunicación entre ejemplos de entrenamiento, como batch normalization (<a href="https://arxiv.org/pdf/1502.03167.pdf">Ioffe y Szegedy, 2015</a>), que hasta hace poco ha sido casi omnipresente en las arquitecturas de visión estándar (<a href="https://arxiv.org/pdf/2102.06171.pdf">Brock et al., 2021b</a>; <a href="https://arxiv.org/pdf/2010.11929.pdf">Dosovitskiy et al., 2020</a>; <a href="https://arxiv.org/pdf/1512.03385.pdf">He et al., 2016</a>; <a href="https://arxiv.org/pdf/1905.11946.pdf">Tan y Le, 2019</a>; <a href="https://arxiv.org/pdf/1605.07146.pdf">Zagoruyko y Komodakis, 2016</a>).</p>
+
+
+</section>
+
+ ]]></description>
+  <category>Privacy</category>
+  <category>Paper</category>
+  <category>Privacy-preserving</category>
+  <category>DeepMind</category>
+  <guid>https://lzeladam.com/posts/07-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte2/index.html</guid>
+  <pubDate>Thu, 08 Dec 2022 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/07-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte2/deepmind.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Unlocking High-Accuracy Differentially Private Image Classification through Scale - Parte 1</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>(DP-SGD), el método de entrenamiento de DP más popular para el aprendizaje profundo, realiza esta protección mediante la inyección de ruido durante el entrenamiento.</p>
+</blockquote>
+<p>Voy a trabajar en la traducción del paper <a href="https://www.deepmind.com/blog/unlocking-high-accuracy-differentially-private-image-classification-through-scale">“Unlocking High-Accuracy Differentially Private Image Classification through Scale”</a>, este documento consta de 6 secciones y cada post será una de ellas. Como parte de mi aprendizaje considero importante generar información en mi lengua materna.</p>
+<section id="introducción" class="level2">
+<h2 class="anchored" data-anchor-id="introducción"><strong>1.- Introducción</strong></h2>
+<p>Los modelos de Machine Learning entrenados de manera estándar pueden ser atacados por un adversario que busca revelar los datos con los que se entrenó el modelo. Por ejemplo, <a href="https://arxiv.org/pdf/2012.07805.pdf">Carlini et al.&nbsp;(2021b)</a> demuestra que los adversarios pueden generar y detectar secuencias de texto de un conjunto de entrenamiento de un “<em>large transformer language model”</em>. Mientras, <a href="https://arxiv.org/pdf/2201.04845.pdf">Balle et al.&nbsp;(2022)</a> Demostró que poderosos adversarios pueden reconstruir imágenes en el conjunto de entrenamiento de un clasificador entrenado en CIFAR-10. Junto a otros resultados (<a href="https://arxiv.org/pdf/2112.03570.pdf">Carlini et al., 2021a</a>; <a href="https://arxiv.org/pdf/2007.14321.pdf">Choquette-Choo et al., 2021</a>; <a href="https://arxiv.org/pdf/2102.02551.pdf">Liu et al., 2021</a>), estos estudios demuestran que los modelos entrenados con datasets confidenciales presentan un riesgo significativo de privacidad.</p>
+<p>La Privacidad Diferencial es una técnica para mitigar ataques de privacidad dirigidos a filtrar ejemplos individuales de entrenamiento, y ya ha sido adoptada en la práctica por una variedad de organizaciones públicas y privadas (<a href="https://dl.acm.org/doi/abs/10.1145/3219819.3226070">Abowd, 2018</a>; <a href="https://docs-assets.developer.apple.com/ml-research/papers/learning-with-privacy-at-scale.pdf">Apple Differential Privacy Team, 2017</a>; <a href="https://blogs.microsoft.com/ai-for-business/differential-privacy/">Bird, 2020</a>; <a href="https://ai.googleblog.com/2014/10/learning-statistics-with-privacy-aided.html">Erlingsson, 2014</a>; <a href="https://ai.googleblog.com/2022/02/federated-learning-with-formal.html">McMahan and Thakurta, 2022</a>; <a href="https://research.facebook.com/blog/2020/02/new-privacy-protected-facebook-data-for-independent-research-on-social-medias-impact-on-democracy/">Nayak, 2020</a>). Un Algoritmo diferencialmente privado es un algoritmo aleatorio que proporciona una garantía formal de que cualquier ejemplo individual en el conjunto de entrenamiento solo puede influir en la distribución de salida del algoritmo en una cantidad pequeña y preestablecida. Esta garantía de privacidad, es denominada <img src="https://latex.codecogs.com/png.latex?(%5Cepsilon,%20%5Cdelta)-DP">, está definida por dos parámetros <img src="https://latex.codecogs.com/png.latex?(%5Cepsilon,%20%5Cdelta)"> a los cuales nos referimos como el presupuesto de privacidad o “<em>privacy budget”</em> en inglés. Cuantos más pequeños sean estos dos parámetros; más cercanas serán las distribuciones de salida entre conjuntos de entrenamiento que difiere en un solo ejemplo, y por lo tanto, más difícil será para un adversario inferir si un solo ejemplo o single data point fue incluido durante el entrenamiento.</p>
+<p>El método más popular para el entrenamiento de redes neuronales con DP es Differentially Private Stochastic Gradient Descent (DP-SGD) (<a href="https://arxiv.org/pdf/1607.00133.pdf">Abadi et al., 2016</a>). DP-SGD sustituye la estimación habitual de gradiente mini-batch por una versión privatizada, en el que el gradiente de cada ejemplo de entrenamiento se recorta a una norma máxima. Además, el ruido gaussiano proporcional a la norma de recorte se agrega a la suma de los gradientes recortados, lo que es suficiente para enmascarar la contribución de cualquier ejemplo individual a la suma. Cada evaluación de un gradiente de mini-batch (privatizado) incurre en un coste de privacidad, y se utiliza un contador de privacidad (<a href="https://arxiv.org/pdf/1607.00133.pdf">Abadi et al., 2016;</a> <a href="https://arxiv.org/pdf/1908.10530.pdf">Mironov et al., 2019</a>) para rastrear el presupuesto total de privacidad gastado a lo largo del entrenamiento. Estos parámetros aumentan con cada mini-batch visto durante el entrenamiento y disminuyen con la escala del ruido agregado, lo que limita la cantidad de iteraciones de entrenamiento que podemos realizar con un presupuesto de privacidad fijo mientras se mantiene bajo control la variación en la estimación del gradiente.</p>
+<p align="center">
+<img src="https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/Figura1.png" class="img-fluid">
+</p>
+<blockquote class="blockquote">
+<p>Figura 1 | (a) Cuando entrenamos en CIFAR-10 sin datos adicionales, mejoramos los resultados publicados previamente bajos <img src="https://latex.codecogs.com/png.latex?(%20%5Cepsilon,%2010%5E%7B-5%7D%20)-DP"> siempre que <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%20%E2%89%A5%203">. En <img src="https://latex.codecogs.com/png.latex?%5Cepsilon%20=%208">, mejoramos el SOTA anterior de Klause et al.&nbsp;(2022) en un 9,7%. Tenga en cuenta que informamos la media y el error estándar en 5 ejecuciones independientes. (b) Al ajustar un NFNet-F3 preentrenado (Brock et al., 2021b) en ImageNet bajo <img src="https://latex.codecogs.com/png.latex?(8,%208%20%C2%B7%2010%5E%7B-7%7D)-DP">, logramos una precisión del 86,7 % entre el top-1, solo un 4,3 % por debajo la actual SOTA no privada del 91,0% (Yu et al., 2022). También obtenemos una precisión del 83,8 % en el top-1 con una garantía mucho más estricta de <img src="https://latex.codecogs.com/png.latex?(0,5,%208%20%C2%B7%2010%5E%7B-7%7D)-DP">, que supera el rendimiento de muchos modelos no privados populares (p.&nbsp;ej., ResNet-50).</p>
+</blockquote>
+<p>El entrenamiento con DP-SGD implica un delicado acto de equilibrio entre diferentes hiperparámetros como la cantidad de ruido agregado, el batch size, el número iteraciones de entrenamiento, para alcanzar el rendimiento óptimo dentro de un presupuesto de privacidad específico. En particular, el ruido agregado al gradiente es una barrera importante para la optimización, lo que generalmente resulta en una degradación significativa en el rendimiento en comparación con el entrenamiento estándar no privado o “non-private” en inglés (<a href="https://arxiv.org/pdf/2110.06255.pdf">Dörmann et al., 2021</a>; <a href="https://arxiv.org/pdf/2203.00324.pdf">Klause et al., 2022</a>; <a href="https://arxiv.org/pdf/2201.12328.pdf">Kurakin et al., 2022</a>). Además, varios autores han postulado que los modelos altamente sobre parametrizados, que funcionan bien en entornos no privados, no funcionan bien cuando se usan con DP-SGD, porque la norma del ruido agregado aumenta con la dimensión de la gradiente (<a href="https://arxiv.org/pdf/2201.12328.pdf">Kurakin et al., 2022</a>; <a href="https://arxiv.org/pdf/2111.13895.pdf">Shen et al., 2021</a>; <a href="https://arxiv.org/pdf/2011.11660.pdf">Tramèr and Boneh</a>, 2021; <a href="https://arxiv.org/pdf/2102.12677.pdf">Yu et al., 2021b</a>), lo que lleva a una “maldición de la dimensionalidad”. En consecuencia, muchos trabajos se han centrado en desarrollar arquitecturas especializadas para formación privada (<a href="https://arxiv.org/pdf/2007.14191.pdf">Papernot et al., 2021</a>; <a href="https://arxiv.org/pdf/2011.11660.pdf">Tramèr and Boneh, 2021</a>), o en reducir la dimensionalidad del modelo durante el entrenamiento (<a href="https://arxiv.org/pdf/2203.11481.pdf">Golatkar et al., 2022</a>; <a href="https://arxiv.org/pdf/2102.12677.pdf">Yu et al., 2021b</a>; <a href="https://arxiv.org/pdf/2103.01294.pdf">Zhang et al., 2021</a>; <a href="https://arxiv.org/pdf/2007.03813.pdf">Zhou et al., 2021</a>).</p>
+<p>Por el contrario, mostramos que las arquitecturas estándar sobre parametrizadas, que logran un rendimiento cercano al estado del arte en el entrenamiento no privado, también pueden funcionar muy bien cuando se entrenan con DP-SGD si se ajustan correctamente. Para lograr esto, presentamos una serie de técnicas que ayudan a la convergencia y aseguran la capacidad de entrenamiento en la inicialización, y exploramos los beneficios de usar modelos previamente entrenados. Nuestras principales contribuciones se enumeran a continuación:</p>
+<ul>
+<li>Describimos un conjunto de técnicas simples que, cuando se combinan, mejoran significativamente el rendimiento DP-SGD. Primero, revisamos las ideas que anteriormente se identificaron como útiles para el entrenamiento privado, incluido el uso de large batch size (<a href="https://arxiv.org/abs/1710.06963">McMahan et al., 2018b</a>) y el reemplazo de las capas de normalización de lotes con alternativas que garantizan una buena propagación de la señal en la inicialización (<a href="https://arxiv.org/pdf/2007.05089.pdf">van der Maaten and Hannun, 2020</a>). Además, proponemos modificaciones adicionales que mejoran la tasa de convergencia de DP-SGD y que no se han utilizado previamente para el entrenamiento privado. Específicamente, sugerimos usar la estandarización de peso en capas convolucionales (<a href="https://arxiv.org/pdf/1903.10520.pdf">Qiao et al., 2019</a>) aprovechando los beneficios de data augmentations promediando gradientes, por ejemplo, en múltiples augmentations de la misma imagen antes de la operación de recorte (<a href="https://arxiv.org/pdf/1901.09335.pdf">Hoffer et al., 2019</a>) y aplicar técnicas de promedio de parámetros (<a href="https://www.researchgate.net/publication/236736831_Acceleration_of_Stochastic_Approximation_by_Averaging">Polyak and Juditsky, 1992</a>).</li>
+<li>Al aplicar las técnicas anteriores, mejoramos significativamente el rendimiento de DP-SGD al entrenar modelos sobreparametrizados inicializados aleatoriamente.
+<ul>
+<li>Entrenando Wide-ResNets (<a href="http://www.bmva.org/bmvc/2016/papers/paper087/index.html">Zagoruyko and Komodakis,2016</a>) en CIFAR-10 sin datos adicionales, logramos un nuevo SOTA de 81.4% bajo <img src="https://latex.codecogs.com/png.latex?(8,%2010%5E%7B-5%7D)-DP">.</li>
+<li>Esta es una mejora sustancial con respeto al SOTA anterior de 71,7% logrado con <img src="https://latex.codecogs.com/png.latex?(7.5,%2010%5E%7B-5%7D)-DP"> (<a href="https://arxiv.org/pdf/2203.00324.pdf">Klause et al.,2022</a>).</li>
+<li>Como se muestra en la Figura 1(a), logramos resultados SOTA en esta tarea en un rango de valores de <img src="https://latex.codecogs.com/png.latex?%5Cepsilon"> entre 3 y 8. También logramos una nueva precisión SOTA top-1 en ImageNet del 32,4 % en <img src="https://latex.codecogs.com/png.latex?(8,%208*10%5E%7B-7%7D)-DP"> al entrenar un ResNet-50 sin normalizador (NF-ResNet-50) (<a href="https://arxiv.org/pdf/2101.08692.pdf">Brock et al., 2021a</a>; <a href="https://arxiv.org/pdf/1512.03385.pdf">He et al., 2016</a>).</li>
+</ul></li>
+</ul>
+<blockquote class="blockquote">
+<p>Tabla 1 | Un resumen de los mejores resultados proporcionados en este documento cuando se entrena con DP-SGD. Todos los números en negrita son SOTA. Para los experimentos CIFAR-10 y CIFAR-100, informamos la precisión media en 5 ejecuciones independientes. Todos los experimentos en CIFAR usan Wide-ResNets con normalización de grupo, mientras que los experimentos ImageNet y Places-365 usan NF-ResNets o NFNets. Consulte las secciones correspondientes para obtener más detalles.</p>
+</blockquote>
+<p align="center">
+<img src="https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/Tabla1.png" class="img-fluid">
+</p>
+<ul>
+<li>Mostramos que el entrenamiento previo no privado en datos públicos/no confidenciales, seguido de un fine-tuning con DP-SGD en el conjunto de datos privados, produce beneficios de rendimiento notables en los puntos de referencia de clasificación de imágenes. Por ejemplo, cuando hacemos fine-tuning de forma privada un NF-ResNet-200 entrenado previamente en JFT-300M (<a href="https://arxiv.org/pdf/1707.02968.pdf">Sun et al., 2017</a>), logramos una precisión del 81,3% en el top-1 en ImageNet por debajo de <img src="https://latex.codecogs.com/png.latex?(8,%208*10%5E%7B-7%7D)-DP">. Observamos mejoras adicionales en el rendimiento al aumentar tanto el tamaño del modelo como el tamaño del conjunto de datos de preentrenamiento, logrando una precisión del 86,7% en el top-1 en <img src="https://latex.codecogs.com/png.latex?(8,%208*10%5E%7B-7%7D)-DP"> con un NFNet-F3 (<a href="https://arxiv.org/pdf/2102.06171.pdf">Brock et al., 2021b</a>) entrenado previamente en JFT-4B. Esta red también obtiene una precisión del 83,8% en el top-1 con un presupuesto de privacidad mucho más ajustado de <img src="https://latex.codecogs.com/png.latex?(0.5,%208*10%5E%7B-7%7D)-DP">. A modo de comparación, el fine-tuning de la misma red pre entrenada en ImageNet sin privacidad alcanza el 88.5%.</li>
+<li>Brindamos información novedosa sobre cómo los hiperparámetros óptimos se relacionan entre sí cuando se entra con DP. Observamos empíricamente que hay un presupuesto óptimo de iteraciones de entrenamiento dado un batch-size fijo, los batch sizes más grandes mejoran el accuracy de la validación, pero requieren más épocas de entrenamiento después de que el batch size supera un cierto umbral, y la elección óptima del learning-rate para DP-SGD es proporcional al batch size cuando el batch size es pequeño, pero constante para batch sizes más grande, similar al entrenamiento no privado.</li>
+</ul>
+<p>Resumimos nuestros resultados clave en la Tabla 1, con nuestros resultados SOTA mostrados en negrita. Hacemos hincapié en que todos nuestros resultados utilizan arquitecturas de visión estándar que han demostrado funcionar bien para el entrenamiento no privado. Creemos que estos resultados son un paso significativo hacia una clasificación de imágenes privada diferencialmente útil en la práctica.</p>
+<section id="esquema-del-paper." class="level3">
+<h3 class="anchored" data-anchor-id="esquema-del-paper."><strong>Esquema del paper.</strong></h3>
+<ul>
+<li>Brindamos una breve introducción a la privacidad diferencial y DP-SGD en la sección 2, donde también analizamos los desafíos que surgen al aplicar DP-SGD a deep networks.</li>
+<li>En la sección 3, describimos una variedad de técnicas que mejoran el rendimiento de las redes entrenadas con DP-SGD, logrando el rendimiento de SOTA en CIFAR-10 e ImageNet cuando se entrena sin datos adicionales.</li>
+<li>En la sección 4, mostramos que el fine-tuning privado de modelos fuertes previamente entrenados mejora drásticamente el rendimiento de la clasificación de imágenes privadas.</li>
+<li>Finalmente, proporcionamos información adicional sobre cómo los hiperparámetros de DP-SGD influyen en el rendimiento en la sección 5.</li>
+</ul>
+</section>
+<section id="reproductibilidad." class="level3">
+<h3 class="anchored" data-anchor-id="reproductibilidad."><strong>Reproductibilidad.</strong></h3>
+<p>Para ayudar a los investigadores a reproducir y verificar nuestros resultados, lanzamos la implementación de DP-SGD utilizado en nuestros experimentos en <a href="https://github.com/deepmind/jax_privacy">https://github.com/deepmind/jax_privacy</a>. También proporcionamos los scripts de configuración y los checkpoints pre entrenados necesarios para reproducir todos nuestros resultados en CIFAR-10 y CIFAR-100, así como nuestros resultados en ImageNet sin datos adicionales. Proporcionamos más detalles sobre nuestra implementación de DP-SGD en el Apéndice A, junto con una descripción de los pasos que llevamos a cabo para auditar su corrección.</p>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>Privacy</category>
+  <category>Paper</category>
+  <category>Privacy-preserving</category>
+  <category>DeepMind</category>
+  <guid>https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/index.html</guid>
+  <pubDate>Sat, 19 Nov 2022 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/deepmind.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>10 Books on Privacy and AI</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>If you’re like most people, you probably think that your data is pretty safe. After all, it’s not like you’re doing anything illegal or shady – so what do you have to worry about? Unfortunately, the truth is that our data is far from safe.</p>
+<p><img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/privacybooks.jpg" class="img-fluid"></p>
+<p>That’s why I believe that everyone should educate themselves on the concept of privacy and privacy-enhancing technologies.</p>
+I think that these books are very useful to understand the concept of privacy and the privacy enhancing technologies like Differential Privacy, Homomorphic Encryption Secure, Federate Learning.
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/10.png" class="img-fluid" style="width:50.0%">
+</p>
+<p><strong>1. Privacy-Preserving Machine Learning</strong></p>
+<p>Is a comprehensive guide to avoiding data breaches in your machine learning projects. You’ll get to grips with modern privacy-enhancing techniques such as differential privacy, compressive privacy, and synthetic data generation</p>
+<p>Link: <a href="https://www.manning.com/books/privacy-preserving-machine-learning">https://www.manning.com/books/privacy-preserving-machine-learning</a></p>
+Autor: J. Morris Chang, Di Zhuang, and G. Dumindu Samaraweera
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/7.png" class="img-fluid">
+</p>
+<p><strong>2. Data Privacy, A runbook for engineers</strong></p>
+<p><em>Data Privacy</em>&nbsp;teaches you to design, develop, and measure the effectiveness of privacy programs. You’ll learn from author Nishant Bhajaria, an industry-renowned expert who has overseen privacy at Google, Netflix, and Uber</p>
+<p>Link: <a href="https://www.manning.com/books/data-privacy">https://www.manning.com/books/data-privacy</a></p>
+Autor: Nishant Bhajaria
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/2.png" class="img-fluid" style="width:40.0%">
+</p>
+<p><strong>3. Privacy is Power: Why and How You Should Take Back Control of Your Data</strong></p>
+<p>Short, terrifying, practical:&nbsp;<em>Privacy is Power</em> highlights the implications of our laid-back attitude to data and sets out how we can take back control.</p>
+<p><strong>Link</strong>: <a href="http://bitly.ws/vQQi">http://bitly.ws/vQQi</a></p>
+<strong>Autor:</strong> <a href="https://www.amazon.com/-/es/Carissa-V%C3%A9liz/e/B08F5DW7CZ/ref=dp_byline_cont_ebooks_1">Carissa Véliz</a>
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/1.png" class="img-fluid">
+</p>
+<p><strong>4. The Fight for Privacy: Protecting Dignity, Identity, and Love in the Digital Age</strong></p>
+<p>Yet there is a solution to our toxic relationship with technology and privacy: fighting for intimate privacy as a civil right.</p>
+<p>Link: <a href="https://www.amazon.com/Fight-Privacy-Protecting-Dignity-Identity/dp/0393882314">https://www.amazon.com/Fight-Privacy-Protecting-Dignity-Identity/dp/0393882314</a></p>
+<p>Autor: Danielle Keats Citron</p>
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/3.png" class="img-fluid">
+</p>
+<p><strong>5. Why Privacy Matters</strong></p>
+<p>Privacy matters because good privacy rules can promote the essential human values of identity, power, freedom, and trust. If we want to preserve our commitments to these precious yet fragile values, we will need privacy rules</p>
+<p>Link: <a href="http://bitly.ws/vQQ9">http://bitly.ws/vQQ9</a></p>
+Autor: Neil Richards
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/4.png" class="img-fluid" style="width:40.0%">
+</p>
+<p><strong>6. What Do We Know and What Should We Do About Internet Privacy?</strong></p>
+<p>The author then proposes what we should do about the problems surrounding internet privacy, such as significant changes in government policy, a reversal of the current ‘war’ on encryption, being brave enough to take on the internet giants, and challenging the idea that ‘real names’ would improve the discourse on social networks.</p>
+<p>Link: <a href="http://bitly.ws/vQPZ">http://bitly.ws/vQPZ</a></p>
+Autor: Paul Bernal
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/5.png" class="img-fluid">
+</p>
+<p><strong>7. Privacy in Context: Technology, Policy, and the Integrity of Social Life</strong></p>
+<p>This book claims that what people really care about when they complain and protest that privacy has been violated is not the act of sharing information itself―most people understand that this is crucial to social life ―but the inappropriate, improper sharing of information.</p>
+<p>Link: <a href="http://bitly.ws/vQPL">http://bitly.ws/vQPL</a></p>
+Autor: Helen Nissenbaum
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/6.png" class="img-fluid">
+</p>
+<p><strong>8. Privacy: A Short History</strong></p>
+<p><em>Privacy: A Short History</em>&nbsp;provides a vital historical account of an increasingly stressed sphere of human interaction. At a time when the death of privacy is widely proclaimed, distinguished historian, David Vincent, describes the evolution of the concept and practice of privacy from the Middle Ages to the present controversy over digital communication and state surveillance provoked by the revelations of Edward Snowden.</p>
+<p>Link: <a href="http://bitly.ws/vQPC">http://bitly.ws/vQPC</a></p>
+Autor: David Vincent
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/8.png" class="img-fluid" style="width:40.0%">
+</p>
+<p><strong>9. Introduction to Privacy Enhancing Technologies</strong></p>
+<p>This textbook provides a unique lens through which the myriad of existing Privacy Enhancing Technologies (PETs) can be easily comprehended and appreciated. It answers key privacy-centered questions with clear and detailed explanations.</p>
+<p>Link: <a href="https://link.springer.com/book/10.1007/978-3-030-81043-6">https://link.springer.com/book/10.1007/978-3-030-81043-6</a></p>
+Autor: Carlisle Adams
+<p align="center">
+<img src="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/9.png" class="img-fluid" style="width:40.0%">
+</p>
+<p><strong>10. The Algorithmic Foundations of Differential Privacy</strong></p>
+<p>After motivating and discussing the meaning of differential privacy, the preponderance of this monograph is devoted to fundamental techniques for achieving differential privacy, and application of these techniques in creative combinations, using the query-release problem as an ongoing example</p>
+<p>Link: <a href="http://bitly.ws/vQPb">http://bitly.ws/vQPb</a></p>
+<p>Autor: Cynthia Dwork and Aaron Roth</p>
+
+
+
+ ]]></description>
+  <category>Privacy</category>
+  <category>Books</category>
+  <category>Privacy-preserving</category>
+  <guid>https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/index.html</guid>
+  <pubDate>Wed, 26 Oct 2022 22:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/05-10-Books-on-Privacy-and-AI/libros.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>¿Por qué la privacidad diferencial es increíble?</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>Traducción al español del post “Why differential privacy is awesome”</p>
+</blockquote>
+<p>¿Cómo se puede publicar los datos de las personas protegiendo su privacidad? Esta pregunta está lejos de ser nueva. Las agencias de estadística se han enfrentado a esto durante décadas. Los informáticos han elaborado varios conceptos para plasmar esta idea. Sin embargo, ninguno de ellos ha sido muy satisfactorio: se demostró que todos estos conceptos se rompían en algunas circunstancias. También eran difíciles de aplicar sin destruir la utilidad de los datos.</p>
+<p>Todo esto cambió en 2006, cuando cuatro investigadores introdujeron la privacidad diferencial. Este nuevo concepto adoptó un enfoque novedoso para definir la filtración de privacidad, uno que resultaría mucho más riguroso y fructífero. Entonces, ¿qué hace que la privacidad diferencial sea especial? ¿Cómo tuvo tanto éxito en los círculos académicos? ¿Por qué los gobiernos y las empresas tecnológicas comenzaron a adoptar la privacidad diferencial en la publicación de sus datos?</p>
+<p>Este primer artículo de introducción a la privacidad diferencial intentará responder a esa pregunta. Primero, describiremos a grandes rasgos lo que hay detrás de este concepto tan exitoso. Luego, explicaremos por qué tiene tanto éxito y por qué es mucho mejor que todos los conceptos elaborados hasta ahora</p>
+<section id="la-idea-central-detrás-de-la-privacidad-diferencial" class="level2">
+<h2 class="anchored" data-anchor-id="la-idea-central-detrás-de-la-privacidad-diferencial">La idea central detrás de la privacidad diferencial</h2>
+<p>Suponga que tiene un proceso que toma alguna base de datos como entrada y devuelve alguna salida.</p>
+<p><img src="https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/df1.png" class="img-fluid"></p>
+<p>Puede ser cualquier proceso. Por ejemplo:</p>
+<ul>
+<li>Un proceso que calcula algunas estadísticas (“dime cuántos usuarios tienen el pelo rojo”)</li>
+<li>Una estrategia de de-identificación (“eliminar nombres y los últimos tres dígitos de los códigos postales”)</li>
+<li>Un proceso de entrenamiento de machine learning (“construir un modelo para predecir a qué usuarios les gustan los gatos”)</li>
+<li>… Ya vas entendiendo la idea.</li>
+</ul>
+<p>Para hacer que un proceso sea diferencialmente privado, generalmente debes modificarlo un poco. Por lo general, se agrega algo de aleatoriedad o ruido en algunos lugares. Lo que haga exactamente y cuánto ruido se agregue depende del proceso que se esté modificando. Voy a prescindir de esa parte y simplemente diré que tu proceso ahora está haciendo una “magia” desconocida.</p>
+<p><img src="https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/df2.png" class="img-fluid"></p>
+<p>Ahora, elimina a alguien de tu base de datos y ejecuta nuevamente el proceso. Si el nuevo proceso es diferencialmente privado, entonces las dos salidas son básicamente las mismas. Esto debe ser cierto sin importar a quién se elimine y qué base de datos tenía en primer lugar.</p>
+<p><img src="https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/df3.png" class="img-fluid"></p>
+<p>Por “básicamente lo mismo”, no me refiero a “se parece un poco”. En principio, recuerda que la magia que agregaste al proceso fue aleatoria. No siempre se obtiene el mismo resultado si se ejecuta el nuevo proceso varias veces. Entonces, ¿qué significa “básicamente lo mismo” en este contexto? Significa que puede obtener exactamente el mismo resultado de ambas bases de datos con una probabilidad similar.</p>
+<p>¿Qué tiene que ver esto con la privacidad? Bueno, supongamos que eres una atacante que intenta averiguar si su objetivo está en los datos originales. Con mirar el resultado final, no se puede estar 100% seguro de nada. Claro, podría haber venido de una base de datos con su objetivo en ella. Pero también podría haber venido exactamente de la misma base de datos, sin su objetivo. Ambas opciones tienen una probabilidad similar, por lo que no hay mucho que puedas decir.</p>
+<p>Es posible que hayas notado que esta definición no dice nada sobre cómo se ven los datos de salida. La privacidad diferencial no es una propiedad de los datos de salida. Es muy diferente, digamos, k-anonymity, una de las primeras definiciones de privacidad de datos. No puede mirar los datos de salida y determinar si satisface la privacidad diferencial. En cambio, la privacidad diferencial es una propiedad del proceso: debes saber cómo se generaron los datos para determinar si son diferencialmente privados.</p>
+<p>A grandes rasgos es eso. Es un poco abstracto, pero no muy complicado. Entonces, ¿por qué todo el hype? ¿Qué hace a la privacidad diferencial tan increíble en comparación con definiciones más antiguas y sencillas?</p>
+</section>
+<section id="qué-hace-que-la-privacidad-diferencial-sea-especial" class="level2">
+<h2 class="anchored" data-anchor-id="qué-hace-que-la-privacidad-diferencial-sea-especial">¿Qué hace que la privacidad diferencial sea especial?</h2>
+<p>Los expertos en privacidad, especialmente en el mundo académico, están entusiasmados con la privacidad diferencial. Fue propuesto por primera vez por Cynthia Dwork, Frank McSherry, Kobbi Nissim y Adam Smith en 2006. Muy pronto, casi todos los investigadores que trabajaban en la anonimización comenzaron a construir algoritmos diferencialmente privados. Las empresas tecnológicas y los gobiernos lo están adoptando rápidamente. Entonces, ¿por qué todo el hype? En mi opinión existen tres razones principales.</p>
+<section id="ya-no-es-necesario-el-modelado-de-ataques" class="level3">
+<h3 class="anchored" data-anchor-id="ya-no-es-necesario-el-modelado-de-ataques">1. Ya no es necesario el modelado de ataques</h3>
+<p>Todas las definiciones anteriores requerían algunas suposiciones sobre el atacante. Para elegir el concepto correcto, necesitas averiguar las capacidades y objetivos del atacante. ¿Cuánto conocimiento previo tienen los atacantes? ¿Qué datos auxiliares pueden usar? ¿Qué tipo de información quieren aprender?</p>
+<p>Hacerlo en la práctica es difícil y muy propenso a errores. Responder a estas preguntas es muy complicado: en particular, es posible que no sepas exactamente lo que el atacante quiere o es capaz de hacer. Peor aún, puede haber incógnitas desconocidas: vectores de ataque que no hayas anticipado. Por esa razón, no podrías hacer declaraciones muy amplias con estas definiciones o conceptos de la vieja escuela. Tenías que hacer algunas suposiciones de las que no podías estar 100% seguro.</p>
+<p>Por el contrario, cuando utilizas la privacidad diferencial, obtienes dos garantías impresionantes.</p>
+<p>Usted protege cualquier tipo de información sobre un individuo. No importa lo que el atacante quiera hacer. Reidentificar su objetivo, saber si están en el conjunto de datos, deducir algún atributo sensible… Todas esas cosas están protegidas. Por lo tanto, no tienes que pensar en los objetivos de tu atacante. Funciona independientemente de lo que el atacante sepa sobre tus datos. Es posible que ya conozcan a algunas personas en la base de datos. Incluso podrían agregar algunos usuarios falsos a su sistema. Con privacidad diferencial, no importa. Los usuarios que el atacante aún no conoce están protegidos.</p>
+</section>
+<section id="puedes-cuantificar-la-pérdida-de-privacidad" class="level3">
+<h3 class="anchored" data-anchor-id="puedes-cuantificar-la-pérdida-de-privacidad">2. Puedes cuantificar la pérdida de privacidad</h3>
+<p>La privacidad diferencial, como los conceptos anteriores, viene con un parámetro numérico que se puede modificar. Sin embargo, hay una gran diferencia en el significado de ese parámetro. Tomemos como ejemplo K-anonymity. Nos dice que cada registro del conjunto de datos de salida “se parece” al menorca otros “k − 1” registros. Pero, ¿el valor de “k” nos dice algo sobre el nivel de protección?</p>
+<p>La respuesta es… no mucho. No existe una relación clara entre el valor de “k” y el grado de privacidad del conjunto de datos. Así que elegir “k” es muy poco preciso y no se puede justificar de manera formal. El problema es aún peor con otros conceptos de la vieja escuela.</p>
+<p>La privacidad diferencial es mucho mejor. Cuando la usas, puedes cuantificar la mayor ganancia de información posible por parte del atacante. El parámetro correspondiente, llamado ε, permite hacer afirmaciones formales. Supongamos que ε = 1.1. Entonces, puedes decir: “un atacante que cree que su objetivo está en el conjunto de datos con una probabilidad del 50 % puede aumentar su nivel de certeza hasta un 75 % como máximo”. Elegir el valor exacto de ε no es fácil, pero al menos se puede interpretar de manera formal.</p>
+<p>¿Y recuerdas el punto anterior sobre el modelado de ataques? Significa que puedes cambiar esta declaración de muchas maneras. Puede reemplazar “su objetivo es el conjunto de datos” por cualquier cosa sobre un individuo. Y puede agregar “no importa lo que el atacante sepa” si desea ser más preciso. En resumen, todo esto hace que la privacidad diferencial sea mucho más fuerte que todas las definiciones anteriores.</p>
+</section>
+<section id="puedes-elaborar-múltiples-mecanismos" class="level3">
+<h3 class="anchored" data-anchor-id="puedes-elaborar-múltiples-mecanismos">3. Puedes elaborar múltiples mecanismos</h3>
+<p>Supongamos que tienes algunos datos. Quieres compartirlos con Alex y con Brinn, de forma anónima. Confías en Alex y en Brinn por igual, así que utilizas la misma definición de privacidad para ambos. No les interesan los mismos aspectos de los datos, así que les das dos versiones diferentes de tus datos. Ambas versiones son “anónimas”, según la definición que hayas elegido.</p>
+<p>¿Qué ocurre si Alex y Brinn deciden conspirar y comparar los datos que les has dado? ¿La unión de las dos versiones anonimizadas seguirá siendo anónima? Resulta que para la mayoría de las definiciones de privacidad, este no es el caso. Si juntas dos versiones k-anónimas de los mismos datos, el resultado no será k-anónimo. Así que si Alex y Brinn colaboran, podrían ser capaces de reidentificar a los usuarios por su cuenta… ¡O incluso reconstruir todos los datos originales! Eso no es una buena noticia.</p>
+<p>Con la privacidad diferencial, puedes evitar este modo de fallo. Supongamos que das datos con privacidad diferencial a Alex y Brinn. Cada vez, usaste un parámetro de ε. Entonces, si conspiran, los datos resultantes siguen estando protegidos por la privacidad diferencial. El nivel de privacidad es ahora más débil: el parámetro pasa a ser 2ε. Así que siguen ganando algo de información, pero ahora se puede cuantificar cuánta. Esta propiedad se llama composición.</p>
+<p>Este escenario suena un poco improbable, pero la composición es super útil en la práctica. Las organizaciones suelen querer hacer muchas cosas con los datos. Publicar estadísticas, liberar una versión anónima, entrenar algoritmos de aprendizaje automático… La composición es una forma de mantener el control del nivel de riesgo a medida que aparecen nuevos casos de uso y los procesos evolucionan.</p>
+</section>
+</section>
+<section id="conclusión" class="level2">
+<h2 class="anchored" data-anchor-id="conclusión">Conclusión</h2>
+<p>Espero que la intuición básica de la privacidad diferencial esté cristalina. Si recuerdas una sola cosa, que sea este resumen de una línea: la incertidumbre en el proceso significa incertidumbre para el atacante, lo que significa mejor privacidad.</p>
+<p>También espero que ahora te preguntes cómo funciona realmente. ¿Qué se esconde detrás de esta magia que hace que todo sea seguro y privado? ¿Por qué la privacidad diferencial tiene todas las increíbles propiedades que he mencionado? Este es el tema exacto del siguiente artículo de esta serie, que lo explica con más detalle sin dejar de lado las matemáticas pesadas.</p>
+<blockquote class="blockquote">
+<p>El autor original de este post es Damien Desfontaine, en Twitter como <a href="https://twitter.com/TedOnPrivacy"><span class="citation" data-cites="TedOnPrivacy">@TedOnPrivacy</span></a>, y el motivo principal que me llevó a traducir la publicación original al español fue el aprendizaje y aportar contenido a la comunidad hispana de Privacidad Diferencial.</p>
+</blockquote>
+
+
+</section>
+
+ ]]></description>
+  <category>Differential Privacy</category>
+  <category>Privacy-preserving</category>
+  <guid>https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/index.html</guid>
+  <pubDate>Tue, 22 Mar 2022 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/privacy.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Deep Learning Specialization - Coursera</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>El progreso del año 2021 ya esta al 78%, y es hora de empezar a contarles el progreso de mis estudios en IA.</p>
+</blockquote>
+<p>Este post estará dedicado al primer curso online que me hizo sentir muy feliz y orgulloso fue <a href="https://www.deeplearning.ai/program/deep-learning-specialization/">La especialización de Deep Learning</a> dictada por Andrew NG (el mejor) en Coursera, y es que les voy a ser sinceros no fue nada fácil primero porque todo estaba en inglés y tenía que volver a repasar matemáticas, pero como dice Andrew NG al final de cada video:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/andrewngunderstand.jpeg" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Frase celebre de Andrew Ng</figcaption><p></p>
+</figure>
+</div>
+<p>Esa frase fue crucial para poder continuar con la especialización y no es broma porque es un mes por cada curso y son cinco!! Luego para recordar tomaba apuntes de cada tema en un bloc de notas en físico de esta forma era mucho más fácil hacer los ejercicios que te dejan cada semana, hay que tener en cuenta que en más de una ocasión tendrás que repetir el video para entender el concepto (si tu motivación es aprender no te importará) abajo una foto de mis apuntes:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/notebook.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Mi cuaderno de apuntes durante el curso</figcaption><p></p>
+</figure>
+</div>
+<p>Este post no es para compartir la solución de las tareas y/o exámenes, lo que intento hacer es motivarte a estudiar aquel curso que tanto tiempo llevas postergando, siéntate abre la página web y paga con esa tarjeta de crédito la plataforma de educación online que más te guste, por último recuerda rodearte de personas que estén motivadas a aprender y no te juzguen por perseguir tus sueños.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/courseraDeepLearningSpecialization.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Certificado de Deep Learning Specialization</figcaption><p></p>
+</figure>
+</div>
+
+
+
+ ]]></description>
+  <category>DeepLearning</category>
+  <category>Mooc</category>
+  <category>Course</category>
+  <category>Coursera</category>
+  <guid>https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/index.html</guid>
+  <pubDate>Wed, 13 Oct 2021 22:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/03-especializacion-deeplearning-coursera/coursera.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Libros de Inteligencia Artificial para el 2021</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/02-libros-de-inteligencia-artificial/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>Los primeros días del 2021 lo he invertido en revisar los libros que quisiera leer durante el resto del año, los temas que seleccioné tienen correlación con mi plan de estudios y mi genero de literatura favorito:</p>
+<ul>
+<li>Ética y Sesgos AI</li>
+<li>Privacidad AI</li>
+<li>Conciencia y Pensamiento</li>
+<li>Sociedad de la Información</li>
+<li>Fundamentos Matemáticos y Estadística para Deep Learning</li>
+<li>Ciencia Ficción</li>
+</ul>
+<p>El listado no tiene un orden de lectura. Quiero que sea una publicación viva, es decir que iré actualizándola con reseñas y más títulos; es de esperar que la gran mayoría de estos libros se encuentren en inglés (motivo para salir de mi zona de confort), pero por suerte también he agregado un link a los ya tienen una edición en español.</p>
+<section id="libros-de-divulgación" class="level2">
+<h2 class="anchored" data-anchor-id="libros-de-divulgación">Libros de divulgación</h2>
+<ol type="1">
+<li><a href="https://www.amazon.com/-/es/Marta-Peirano-ebook/dp/B07QMB2W7G/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=El+enemigo+conoce+el+sistema%3A+Manipulaci%C3%B3n+de+ideas%2C+personas+e+influencias+despu%C3%A9s+de+la+econom%C3%ADa+de+la+atenci%C3%B3n&amp;qid=1610451857&amp;s=digital-text&amp;sr=1-1">El enemigo conoce el sistema: Manipulación de ideas, personas e influencias después de la economía de la atención</a></li>
+<li><a href="https://www.amazon.com/-/es/Melanie-Mitchell-ebook/dp/B07MYWPQSK/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=artificial+intelligence%3A+a+guide+for+thinking+humans&amp;qid=1610451880&amp;s=digital-text&amp;sr=1-1">Artifical Intelligence: A Guide for Thinking Humans</a></li>
+<li><a href="https://www.amazon.com/-/es/Douglas-R-Hofstadter/dp/B01BITL2WG/ref=sr_1_3?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Godel%2C+Escher%2C+Bach%3A+An+Eternal+Golden+Braid&amp;qid=1610451898&amp;s=digital-text&amp;sr=1-3-catcorr">Godel, Escher, Bach: An Eternal Golden Braid</a> y en español se titula: <a href="https://www.amazon.com/s?k=G%C3%B6del%2C+Escher%2C+Bach%3A+Un+eterno+y+gr%C3%A1cil+bucle&amp;i=digital-text&amp;__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;ref=nb_sb_noss">Gödel, Escher, Bach: Un eterno y grácil bucle</a></li>
+<li><a href="https://www.amazon.com/-/es/Caroline-Criado-Perez-ebook/dp/B07CQ2NZG6/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Invisible+Women%3A+Exposing+Data+Bias+in+a+World+Designed+for+Men&amp;qid=1610451969&amp;s=digital-text&amp;sr=1-1">Invisible Women: Exposing Data Bias in a World Designed for Men</a> y en español se titula: <a href="https://www.amazon.com/-/es/Caroline-Criado-Perez-ebook/dp/B082VMCR2H/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=La+mujer+invisible%3A+Descubre+c%C3%B3mo+los+datos+configuran+un+mundo+hecho+por+y+para+los+hombres&amp;qid=1610452012&amp;s=digital-text&amp;sr=1-1">La mujer invisible: Descubre cómo los datos configuran un mundo hecho por y para los hombres</a></li>
+<li><a href="https://www.amazon.com/-/es/Michael-Kearns-ebook/dp/B07XLTXBXV/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Ethical+Algorithm%3A+The+Science+of+Socially+Aware+Algorithm+Design&amp;qid=1610452055&amp;s=digital-text&amp;sr=1-1">The Ethical Algorithm: The Science of Socially Aware Algorithm Design</a> y en español se titula: <a href="https://www.amazon.com/-/es/Michael-Kearns-ebook/dp/B08L1WH98Q/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=El+algoritmo+%C3%89tico.+La+Ciencia+Del+Dise%C3%B1o+de+algoritmos+socialmente+responsables&amp;qid=1610452079&amp;s=digital-text&amp;sr=1-1">El algoritmo Ético. La Ciencia Del Diseño de algoritmos socialmente responsables</a></li>
+<li><a href="https://www.amazon.com/-/es/Richard-Powers-ebook/dp/B073VX7HT4/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Overstory%3A+A+Novel&amp;qid=1610452095&amp;s=digital-text&amp;sr=1-1">The Overstory: A Novel</a> y en español se titula: <a href="https://www.amazon.com/-/es/Richard-Powers/dp/8491814442/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=El+clamor+de+los+bosques&amp;qid=1610452142&amp;s=digital-text&amp;sr=1-1">El clamor de los bosques</a></li>
+<li><a href="https://www.amazon.com/-/es/James-Lovell-ebook/dp/B07NSN3CZH/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Apollo+13+%28English+Edition%29&amp;qid=1610738817&amp;sr=8-1">Apollo 13</a></li>
+<li><a href="https://www.amazon.com/-/es/Ruha-Benjamin-ebook/dp/B07S61LLGW/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;keywords=Captivating+Technology%3A+Race%2C+Carceral+Technoscience%2C+and+Liberatory+Imagination+in+Everyday+Life&amp;qid=1610738843&amp;sr=8-1">Captivating Technology: Race, Carceral Technoscience, and Liberatory Imagination in Everyday Life</a></li>
+<li><a href="https://www.amazon.com/-/es/Ruha-Benjamin-ebook-dp-B07V6M9VQ5/dp/B07V6M9VQ5/ref=mt_other?_encoding=UTF8&amp;me=&amp;qid=">Race After Technology: Abolitionist Tools for the New Jim Code</a></li>
+<li><a href="https://www.amazon.com/-/es/Paul-Kalanithi-ebook/dp/B00XSSYR50/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=When+Breath+Becomes+Air&amp;qid=1610452166&amp;s=digital-text&amp;sr=1-1">When Breath Becomes Air</a> y en español se titula: <a href="https://www.amazon.com/Recuerda-que-vas-morir-prep%C3%A1rense/dp/8432229490">Recuerda que vas a morir. Vive (Los Tres Mundos)</a></li>
+<li><a href="https://www.amazon.com/-/es/Andy-Clark-ebook/dp/B004MDLRQW/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Supersizing+the+Mind%3A+Embodiment%2C+Action%2C+and+Cognitive+Extension&amp;qid=1610452286&amp;s=books&amp;sr=1-1">Supersizing the Mind: Embodiment, Action, and Cognitive Extension (Philosophy of Mind)</a></li>
+<li><a href="https://www.amazon.com/-/es/David-Deutsch-ebook/dp/B005DXR5ZC/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Beginning+of+Infinity%3A+Explanations+That+Transform+the+world&amp;qid=1610452304&amp;s=books&amp;sr=1-1">The Beginning of Infinity: Explanations That Transform the world</a></li>
+<li><a href="https://www.amazon.com/-/es/Peter-Godfrey-Smith-ebook/dp/B01FQRPIIA/ref=sr_1_fkmr0_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Other+Minds.The+Octopus+And+The+Evolution+Of+Inte%3A+The+Octopus+and+the+Evolution+of+Intelligent+Life&amp;qid=1610452321&amp;s=books&amp;sr=1-1-fkmr0">Other Minds: The Octopus, the Sea, and the Deep Origins of Consciousness</a> y en español se titula: Otras mentes. <a href="https://www.amazon.com/-/es/Peter-Godfrey-Smith-ebook/dp/B075VFTRC5/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Otras+mentes.+El+pulpo%2C+el+mar+y+los+origenes+profundos+de+la+consciencia&amp;qid=1610452346&amp;s=books&amp;sr=1-1">El pulpo, el mar y los origenes profundos de la consciencia</a></li>
+<li><a href="https://www.amazon.com/-/es/Artur-S-DAvila-Garcez/dp/3540732454/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Neural-Symbolic+Cognitive+Reasoning&amp;qid=1610452359&amp;s=books&amp;sr=1-1">Neural-Symbolic Cognitive Reasoning (Cognitive Technologies)</a></li>
+<li><a href="https://www.amazon.com/-/es/Nick-Bostrom-ebook/dp/B00LOOCGB2/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Superintelligence%3A+Paths%2C+Dangers%2C+Strategies&amp;qid=1610452385&amp;s=books&amp;sr=1-1">Superintelligence: Paths, Dangers, Strategies</a> y en español se titula: <a href="https://www.amazon.com/-/es/Nick-Bostrom-ebook/dp/B0796XM4J5/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Superinteligencia%3A+Caminos%2C+peligros%2C+estrategias&amp;qid=1610452410&amp;s=books&amp;sr=1-1">Superinteligencia: Caminos, peligros, estrategias</a></li>
+<li><a href="https://www.amazon.com/-/es/Paul-R-Daugherty-ebook/dp/B075FCVTRR/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Human+%2B+Machine%3A+Reimagining+Work+in+the+Age+of+AI&amp;qid=1610452425&amp;s=books&amp;sr=1-1">Human + Machine: Reimagining Work in the Age of AI</a></li>
+<li><a href="https://www.amazon.com/-/es/Ray-Kurzweil/dp/0143124048/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=How+to+Create+a+Mind%3A+The+Secret+of+Human+Thought+Revealed&amp;qid=1610452452&amp;s=books&amp;sr=1-1">How to Create a Mind: The Secret of Human Thought Revealed</a> y en español se titula: <a href="https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B01348WTTO/ref=sr_1_2?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=%28COMO+CREAR+UNA+MENTE&amp;qid=1610452480&amp;s=books&amp;sr=1-2">Cómo crear una mente</a></li>
+<li><a href="https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B000QCSA7C/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Singularity+Is+Near%3A+When+Humans+Transcend+Biology&amp;qid=1610452738&amp;s=books&amp;sr=1-1">The Singularity Is Near: When Humans Transcend Biology</a> y en español se titula: <a href="https://www.amazon.com/-/es/Ray-Kurzweil-ebook/dp/B01283W7UM/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=La+Singularidad+est%C3%A1+cerca&amp;qid=1610452752&amp;s=books&amp;sr=1-1">La Singularidad está cerca</a></li>
+<li><a href="https://www.amazon.com/-/es/Amir-Husain-ebook/dp/B071YCS3WX/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Sentient+Machine%3A+The+Coming+Age+of+Artificial+Intelligence&amp;qid=1610452773&amp;s=books&amp;sr=1-1">The Sentient Machine: The Coming Age of Artificial Intelligence</a></li>
+<li><a href="https://www.amazon.com/-/es/Erik-Brynjolfsson-ebook/dp/B00D97HPQI/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Second+Machine+Age%3A+Work%2C+Progress%2C+and+Prosperity+in+a+Time+of+Brilliant+Technologies&amp;qid=1610452796&amp;s=books&amp;sr=1-1">The Second Machine Age: Work, Progress, and Prosperity in a Time of Brilliant Technologies</a></li>
+<li><a href="https://www.amazon.com/-/es/Rizwan-Virk-ebook/dp/B07M81F1KG/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Simulation+Hypothesis%3A+An+MIT+Computer+Scientist+Shows+Why+AI%2C+Quantum+Physics+and+Eastern+Mystics+All+Agree+We+Are+In+a+Video+Game&amp;qid=1610452810&amp;s=books&amp;sr=1-1">The Simulation Hypothesis: An MIT Computer Scientist Shows Why AI, Quantum Physics and Eastern Mystics All Agree We Are In a Video Game</a></li>
+<li><a href="https://www.amazon.com/-/es/Carissa-V%C3%A9liz-ebook/dp/B08788L77V/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Privacy+is+Power+Why+and+How+You+Should+Take+Back+Control+of+Your+Data&amp;qid=1610452832&amp;s=books&amp;sr=1-1">Privacy is Power Why and How You Should Take Back Control of Your Data</a></li>
+<li><a href="https://www.amazon.com/-/es/Paul-Bernal-ebook/dp/B082DLCKVJ/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=What+Do+We+Know+and+What+Should+We+Do+About+Internet+Privacy%3F&amp;qid=1610452846&amp;s=books&amp;sr=1-1">What Do We Know and What Should We Do About Internet Privacy?</a></li>
+<li><a href="https://www.amazon.com/-/es/Helen-Nissenbaum/dp/0804752370/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Privacy+in+Context%3A+Technology%2C+Policy%2C+and+the+Integrity+of+Social+Life&amp;qid=1610452863&amp;s=books&amp;sr=1-1">Privacy in Context: Technology, Policy, and the Integrity of Social Life</a></li>
+<li><a href="https://www.amazon.com/-/es/David-Vincent-ebook/dp/B01CGHXKZG/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Privacy%3A+A+Short+History&amp;qid=1610452886&amp;s=books&amp;sr=1-1">Privacy: A Short History</a></li>
+<li><a href="https://www.amazon.com/-/es/Shoshana-Zuboff-ebook/dp/B01N7UERGX/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=The+Age+of+Surveillance+Capitalism.+The+Fight+for+a+Human+Future+at+the+New+Frontier+of+Power&amp;qid=1610452969&amp;s=books&amp;sr=1-1">The Age of Surveillance Capitalism. The Fight for a Human Future at the New Frontier of Power</a> y en español se titula: <a href="https://www.amazon.com/-/es/Shoshana-Zuboff-ebook/dp/B08HFWFHTP/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=La+era+del+capitalismo+de+la+vigilancia%3A+La+lucha+por+un+futuro+humano+frente+a+las+nuevas+fronteras+del+poder+%28Estado+y+Sociedad%29&amp;qid=1610452998&amp;s=books&amp;sr=1-1">La era del capitalismo de la vigilancia: La lucha por un futuro humano frente a las nuevas fronteras del poder (Estado y Sociedad)</a></li>
+<li><a href="https://www.amazon.com/-/es/Michael-Kanaan-ebook/dp/B083M7V9FZ/ref=tmm_kin_swatch_0?_encoding=UTF8&amp;qid=1610453022&amp;sr=1-1">T-Minus AI: Humanity’s Countdown to Artificial Intelligence and the New Pursuit of Global Power</a></li>
+<li><a href="https://www.amazon.com/-/es/Daniel-Kahneman-ebook/dp/B00555X8OA/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Thinking%2C+Fast+%26+Slow&amp;qid=1610453064&amp;s=digital-text&amp;sr=1-1">Thinking, Fast &amp; Slow</a> y en español se titula: <a href="https://www.amazon.com/-/es/Daniel-Kahneman-ebook/dp/B008BPHBTO/ref=tmm_kin_swatch_0?_encoding=UTF8&amp;qid=1610453088&amp;sr=1-1-catcorr">Pensar rápido, pensar despacio (Psicología)</a></li>
+</ol>
+</section>
+<section id="libros-de-ficción" class="level2">
+<h2 class="anchored" data-anchor-id="libros-de-ficción">Libros de ficción</h2>
+<ol type="1">
+<li><a href="https://www.amazon.com/-/es/Joanna-Kavenna-ebook/dp/B07PZJQM3P/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Zed+Joanna+Kavenna&amp;qid=1610739228&amp;sr=8-1">Zed</a></li>
+<li><a href="https://www.amazon.com/Artificial-Condition-Murderbot-Martha-Wells/dp/1250186927">Artificial Condition: The Murderbot Diaries</a> y en español se titula: <a href="https://www.amazon.com/-/es/Martha-Wells-ebook/dp/B07ZJNDD7R/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=condicion+artificial+spanish&amp;qid=1610448985&amp;s=books&amp;sr=1-1">Condición artificial: Los diarios de Matabot (Alethé)</a></li>
+</ol>
+</section>
+<section id="libros-de-consulta" class="level2">
+<h2 class="anchored" data-anchor-id="libros-de-consulta">Libros de consulta</h2>
+<ol type="1">
+<li><a href="https://www.deeplearningbook.org/">Deep Learning (Adaptive Computation and Machine Learning series)</a></li>
+<li><a href="https://www.amazon.com/-/es/Shai-Shalev-Shwartz-ebook/dp/B00J8LQU8I/ref=sr_1_1?__mk_es_US=%C3%85M%C3%85%C5%BD%C3%95%C3%91&amp;dchild=1&amp;keywords=Understanding+Machine+Learning%3A+From+Theory+to+Algorithms&amp;qid=1610453168&amp;s=digital-text&amp;sr=1-1">Understanding Machine Learning: From Theory to Algorithms</a></li>
+<li><a href="https://statlearning.com/ISLR%20Seventh%20Printing.pdf">Intro to Statistical Learning, with Applications in R</a></li>
+<li><a href="https://web.stanford.edu/~hastie/ElemStatLearn/">The Elements of Statistical Learning: Data Mining, Inference, and Prediction</a></li>
+<li><a href="https://web.stanford.edu/~hastie/CASI/">Computer Age Statistical Inference: Algorithms, Evidence, and Data Science</a></li>
+<li><a href="https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf">Reinforcement Learning: An Introduction (Adaptive Computation and Machine Learning series)</a></li>
+<li><a href="https://www.springer.com/gp/book/9783030588953">Algorithms for Data and Computation Privacy</a></li>
+</ol>
+<p>Para este post tomé como referencias a las siguientes fuentes :</p>
+<ul>
+<li><a href="https://hai.stanford.edu/blog/hai-recommended-reading-10-books-worth-checking-out">HAI Recommended Reading: 10 Books Worth Checking Out</a></li>
+<li><a href="https://courses.openmined.org/">Our Privacy Opportunity course by OpenMined</a></li>
+</ul>
+
+
+</section>
+
+ ]]></description>
+  <category>DeepLearning</category>
+  <category>Books</category>
+  <category>Ethics</category>
+  <guid>https://lzeladam.com/posts/02-libros-de-inteligencia-artificial/index.html</guid>
+  <pubDate>Thu, 14 Jan 2021 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/02-libros-de-inteligencia-artificial/libros.jpeg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Empezando a estudiar Inteligencia Artificial</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/01-Bienvenida/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>Hace unos años cuando decidí estudiar Inteligencia Artificial no sabía por dónde empezar. Recordaba muy poco de álgebra lineal, cálculo y estadística.</p>
+</blockquote>
+<p>Por otro lado, los documentos de divulgación científica se encontraban en inglés y en ese momento mi nivel de inglés era muy bajo, entonces tenía dos obstáculos: los fundamentos matemáticos y el idioma.</p>
+<p>Así que lo primero que hice fue buscar “Cursos de Inteligencia Artificial“ en Google y el resultado fue de todo tipo, desde maestrías, moocs, bootcamps,repositorios de código y blogs. Algunos de ellos decían que no era necesario aprender matemáticas, otros que sí, términos como <a href="https://es.wikipedia.org/wiki/Aprendizaje_autom%C3%A1tico">Machine Learning</a>, <a href="https://es.wikipedia.org/wiki/Aprendizaje_profundo">Deep Learning</a>, <a href="https://es.wikipedia.org/wiki/Visi%C3%B3n_artificial">Computer Vision</a>, <a href="https://es.wikipedia.org/wiki/Procesamiento_de_lenguajes_naturales">Natural Language Processing</a>, currsos por determinado lenguaje programación, también encontré que existían librerías como <a href="https://www.tensorflow.org/">Tensorflow</a>, <a href="https://caffe.berkeleyvision.org/">Caffe</a>, <a href="https://pytorch.org/">Pythorch</a>, etc.</p>
+<p>Y finalmente estaban los informes, encuestas y estudios sobre la situación actual y la tendencia del mercado en Inteligencia Artificial.</p>
+<p>Si todos estos recursos te abrumaron y acabaron con tus ganas de estudiar simplemente porque no sabías por donde empezar, verás que no fuiste el único, yo también pasé por lo mismo.</p>
+<p>En ese tiempo de bloqueo me mantuve consumiendo el lado más romántico y filosófico de la inteligencia artificial mediante libros y películas de ciencia ficción, pero decidí intentar estudiar nuevamente la parte técnica, para eso me planteé eliminar los obstáculos que mencioné al inicio con los siguientes compromisos:</p>
+<ul>
+<li>Estudiar inglés de manera constante</li>
+<li>Crear un blog para llevar mis apuntes</li>
+<li>Estudiar los fundamentos Matemáticos</li>
+<li>Consumir recursos como audiobooks, ebook, papers, películas y documentales.</li>
+</ul>
+<p>La razón de ser de este blog es justamente compartir mi aprendizaje contigo, hacerlo más accesible y decirte que a pesar de la gran cantidad de términos, formulas y código no tienes que ser un <a href="https://en.wikipedia.org/wiki/Andrew_Ng">Andrew Ng</a> o un <a href="https://en.wikipedia.org/wiki/Yann_LeCun">Yann LeCun</a> para comprender este mundo e ir progresando si te planteas objetivos realistas y eres constante como el <a href="https://terminator.fandom.com/wiki/T-800">T-800</a>.</p>
+
+
+
+ ]]></description>
+  <category>DeepLearning</category>
+  <category>InteligenciaArtificial</category>
+  <guid>https://lzeladam.com/posts/01-Bienvenida/index.html</guid>
+  <pubDate>Sat, 15 Aug 2020 22:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/01-Bienvenida/journey.jpeg" medium="image" type="image/jpeg"/>
+</item>
+</channel>
+</rss>

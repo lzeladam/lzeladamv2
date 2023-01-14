@@ -3,7 +3,7 @@ title: "Libros de Inteligencia Artificial para el 2021"
 author: "Alexander Zelada"
 date: "2021-01-15"
 categories: [DeepLearning, Books, Ethics]
-image: "book.png"
+image: "libros.jpeg"
 ---
 
 Los primeros días del 2021 lo he invertido en revisar los libros que quisiera leer durante el resto del año, los temas que seleccioné tienen correlación con mi plan de estudios y mi genero de literatura favorito:

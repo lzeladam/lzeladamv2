@@ -3,7 +3,7 @@ title: "Deep Learning Specialization - Coursera"
 author: "Alexander Zelada"
 date: "2021-10-14"
 categories: [DeepLearning, Mooc, Course, Coursera]
-image: "coursera.png"
+image: "coursera.jpeg"
 ---
 
 > El progreso del año 2021 ya esta al 78%, y es hora de empezar a contarles el progreso de mis estudios en IA. 

@@ -3,7 +3,7 @@ title: "10 Books on Privacy and AI"
 author: "Alexander Zelada"
 date: "2022-10-27"
 categories: [Privacy, Books, Privacy-preserving]
-image: "iconbookprivacy.png"
+image: "libros.jpeg"
 ---
 If you’re like most people, you probably think that your data is pretty safe.
 After all, it’s not like you’re doing anything illegal or shady – so what do you have to worry about?

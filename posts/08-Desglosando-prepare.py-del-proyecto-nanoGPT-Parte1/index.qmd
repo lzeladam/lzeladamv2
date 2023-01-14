@@ -3,7 +3,7 @@ title: "Desglosando el código de prepare.py del nanoGPT - Parte 1"
 author: "Alexander Zelada"
 date: "2023-01-07"
 categories: [NLP, GPT, Pytorch]
-image: "Bienvenida.png"
+image: "chatgpt.jpeg"
 ---
 >GPT-2, fue entrenado simplemente para predecir la siguiente palabra en 40GB de texto de internet
 

@@ -3,7 +3,7 @@ title: "¿Por qué la privacidad diferencial es increíble?"
 author: "Alexander Zelada"
 date: "2022-03-23"
 categories: [Differential Privacy, Privacy-preserving]
-image: "privacy.png"
+image: "privacy.jpeg"
 ---
 > Traducción al español del post "Why differential privacy is awesome"
 
