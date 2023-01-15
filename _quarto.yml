@@ -2,7 +2,7 @@ project:
   type: website
   output-dir: docs
 website:
-  title: "Deep Learning y Privacidad"
+  title: "Alexander Zelada"
   site-url: https://lzeladam.com
   description: "Este es mi blog personal."
   navbar:
