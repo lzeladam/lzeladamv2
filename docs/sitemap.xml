@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://lzeladam.com/index.html</loc>
-    <lastmod>2023-01-14T00:12:46.159Z</lastmod>
+    <lastmod>2023-01-15T17:21:17.362Z</lastmod>
   </url>
   <url>
     <loc>https://lzeladam.com/posts/08-Desglosando-prepare.py-del-proyecto-nanoGPT-Parte1/index.html</loc>
@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://lzeladam.com/posts/04-por-que-la-privacidad-diferencial-es-increible/index.html</loc>
-    <lastmod>2023-01-13T23:24:32.545Z</lastmod>
+    <lastmod>2023-01-15T17:02:00.508Z</lastmod>
   </url>
   <url>
     <loc>https://lzeladam.com/posts/02-libros-de-inteligencia-artificial/index.html</loc>
@@ -31,5 +31,13 @@
   <url>
     <loc>https://lzeladam.com/posts/07-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte2/index.html</loc>
     <lastmod>2023-01-14T00:12:45.266Z</lastmod>
+  </url>
+  <url>
+    <loc>https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/index.html</loc>
+    <lastmod>2023-01-15T17:20:46.225Z</lastmod>
+  </url>
+  <url>
+    <loc>https://lzeladam.com/posts/06-Unlocking-High-Accuracy-Differentially-Private-Image-Classification-through-Scale - Parte1/index.html</loc>
+    <lastmod>2023-01-15T17:02:01.156Z</lastmod>
   </url>
 </urlset>

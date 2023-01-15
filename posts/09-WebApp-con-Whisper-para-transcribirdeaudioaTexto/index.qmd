@@ -1,0 +1,46 @@
+---
+title: "WebApp para transcribir de audio a texto usando Whisper"
+author: "Alexander Zelada"
+date: "2023-01-15"
+categories: [Whisper, OpenAI, Flask, Desarrollo, Web]
+image: "whisper.jpeg"
+---
+>He creado una aplicación web sencilla en Flask que permite a los usuarios grabar y reproducir audio utilizando su navegador.
+
+[Whisper](https://openai.com/blog/whisper/) es un modelo de reconocimiento de voz de propósito general que permite realizar el reconocimiento de voz y la traducción a varios idiomas. Está entrenado con 680.000 horas de datos multilingües supervisados recopilados de Internet, es multitarea y es de código abierto. Es una herramienta muy potente y versátil.
+
+Existen cinco tamaños de modelos, en el siguiente cuadro se muestra la cantidad de parámetros y requisitos de memoria
+
+![](01.png)
+
+He creado una aplicación web sencilla en Flask que permite a los usuarios grabar y reproducir audio utilizando su navegador. Además, esta aplicación también permite transcribir el audio grabado mediante el uso de Whisper (medium)
+
+La aplicación utiliza la API de grabación de audio de [MediaRecorder](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder) para acceder a la entrada de audio del usuario y comenzar a grabar. 
+
+![](02.svg)
+
+Los fragmentos de audio se almacenan en una matriz llamada "chunks" y se detienen cuando se hace clic en el botón "Detener".
+
+<p align="center">
+![](03.png)
+</p>
+
+Cuando se detiene la grabación, se muestra un cuadro de diálogo para solicitar el nombre de la grabación y se crean elementos de audio con dos botones: uno para "Transcribir" y otro para "Borrar" la grabación. Al hacer clic en el botón "Transcribir", se llama a una función que envía el audio en formato ogg al backend para obtener la transcripción del audio y mostrarla en una caja de texto en la página.
+
+![](04.png)
+
+Este sería todo el código del backend:
+
+<p align="center">
+![](05.png)
+</p>
+
+Nota: 
+
+Para una instalación correcta de los módulos de Whisper, siga el tutorial oficial en el siguiente enlace:
+
+[https://github.com/openai/whisper](https://github.com/openai/whisper)
+
+ Además, el código de la aplicación web se encuentra disponible en mi repositorio en :
+
+[https://github.com/lzeladam/whisperwebapp](https://github.com/lzeladam/whisperwebapp)

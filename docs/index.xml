@@ -10,7 +10,53 @@
 <atom:link href="https://lzeladam.com/index.xml" rel="self" type="application/rss+xml"/>
 <description>Este es mi blog personal.</description>
 <generator>quarto-1.1.251</generator>
-<lastBuildDate>Fri, 06 Jan 2023 23:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 14 Jan 2023 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>WebApp para transcribir de audio a texto usando Whisper</title>
+  <dc:creator>Alexander Zelada</dc:creator>
+  <link>https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<blockquote class="blockquote">
+<p>He creado una aplicación web sencilla en Flask que permite a los usuarios grabar y reproducir audio utilizando su navegador.</p>
+</blockquote>
+<p><a href="https://openai.com/blog/whisper/">Whisper</a> es un modelo de reconocimiento de voz de propósito general que permite realizar el reconocimiento de voz y la traducción a varios idiomas. Está entrenado con 680.000 horas de datos multilingües supervisados recopilados de Internet, es multitarea y es de código abierto. Es una herramienta muy potente y versátil.</p>
+<p>Existen cinco tamaños de modelos, en el siguiente cuadro se muestra la cantidad de parámetros y requisitos de memoria</p>
+<p><img src="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/01.png" class="img-fluid"></p>
+<p>He creado una aplicación web sencilla en Flask que permite a los usuarios grabar y reproducir audio utilizando su navegador. Además, esta aplicación también permite transcribir el audio grabado mediante el uso de Whisper (medium)</p>
+<p>La aplicación utiliza la API de grabación de audio de <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder">MediaRecorder</a> para acceder a la entrada de audio del usuario y comenzar a grabar.</p>
+<p><img src="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/02.svg" class="img-fluid"></p>
+<p>Los fragmentos de audio se almacenan en una matriz llamada “chunks” y se detienen cuando se hace clic en el botón “Detener”.</p>
+<p align="center">
+<img src="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/03.png" class="img-fluid">
+</p>
+<p>Cuando se detiene la grabación, se muestra un cuadro de diálogo para solicitar el nombre de la grabación y se crean elementos de audio con dos botones: uno para “Transcribir” y otro para “Borrar” la grabación. Al hacer clic en el botón “Transcribir”, se llama a una función que envía el audio en formato ogg al backend para obtener la transcripción del audio y mostrarla en una caja de texto en la página.</p>
+<p><img src="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/04.png" class="img-fluid"></p>
+<p>Este sería todo el código del backend:</p>
+<p align="center">
+<img src="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/05.png" class="img-fluid">
+</p>
+<p>Nota:</p>
+<p>Para una instalación correcta de los módulos de Whisper, siga el tutorial oficial en el siguiente enlace:</p>
+<p><a href="https://github.com/openai/whisper">https://github.com/openai/whisper</a></p>
+<p>Además, el código de la aplicación web se encuentra disponible en mi repositorio en :</p>
+<p><a href="https://github.com/lzeladam/whisperwebapp">https://github.com/lzeladam/whisperwebapp</a></p>
+
+
+
+ ]]></description>
+  <category>Whisper</category>
+  <category>OpenAI</category>
+  <category>Flask</category>
+  <category>Desarrollo</category>
+  <category>Web</category>
+  <guid>https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/index.html</guid>
+  <pubDate>Sat, 14 Jan 2023 23:00:00 GMT</pubDate>
+  <media:content url="https://lzeladam.com/posts/09-WebApp-con-Whisper-para-transcribirdeaudioaTexto/whisper.jpeg" medium="image" type="image/jpeg"/>
+</item>
 <item>
   <title>Desglosando el código de prepare.py del nanoGPT - Parte 1</title>
   <dc:creator>Alexander Zelada</dc:creator>
